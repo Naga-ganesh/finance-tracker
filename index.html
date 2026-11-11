@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f5e4d"><title>Finance PA · Bonds & Portfolio</title>
+<meta name="theme-color" content="#0f5e4d"><title>Finance PA · Bond Portfolio</title>
 <style>
 :root{color-scheme:light dark;--bg:#0b1210;--panel:#131e1a;--tx:#e3ece8;--mut:#859e95;--ink:#58c9a6;--ink-light:#152b24;--on:#081712;--rule:#20332c;--bad:#f1948a;--ok:#52be80;--gold:#f4d03f;--shadow:0 4px 14px rgba(0,0,0,0.3)}
 *{box-sizing:border-box}[hidden]{display:none!important}
@@ -21,7 +21,7 @@ nav button.on{color:var(--ink);border-color:var(--ink);font-weight:700}
 .seg button{flex:1;background:transparent;color:var(--tx);border-radius:6px;padding:8px 14px;font-size:13px;font-weight:500;border:0}
 .seg button.on{background:var(--ink);color:var(--on);font-weight:700}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-top:16px}
-.card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:space-between;position:relative}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:space-between;position:relative;transition:border-color .2s}
 .card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
 .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;display:inline-block}
 .badge-sec{background:#194d33;color:#7dcea0}
@@ -39,6 +39,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{font-weight:600;colo
 .date-group{background:var(--panel);border:1px solid var(--rule);border-radius:10px;margin-bottom:12px;overflow:hidden}
 .date-header{background:var(--ink-light);padding:10px 16px;font-weight:700;color:var(--ink);display:flex;justify-content:space-between}
 .chart-container{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:20px;margin:16px 0;text-align:center}
+.clickable-row{cursor:pointer}.clickable-row:hover{background:var(--ink-light)}
 </style></head><body><main>
 <section id="login" hidden>
   <div style="max-width:360px;margin:80px auto;text-align:center" class="kpi-box">
@@ -82,6 +83,12 @@ const f0=n=>'₹'+Math.round(n||0).toLocaleString('en-IN'),f2=n=>'₹'+(n||0).to
 const DAY=864e5,UTC=s=>{const[a,b,c]=s.split('-').map(Number);return Date.UTC(a,b-1,c)},ISO=t=>new Date(t).toISOString().slice(0,10),eom=(y,m)=>new Date(Date.UTC(y,m+1,0)).getUTCDate();
 let TODAY=(()=>{const d=new Date(Date.now()+19800000);return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())})();
 
+const PALETTE=['#58c9a6','#52be80','#f4d03f','#e59866','#af7ac5','#5499c7','#48c9b0','#f1948a','#a569bd','#45b39d','#f5b041','#5d6d7e'];
+function getBondColor(isin,allBonds){
+  const idx=allBonds.findIndex(b=>b.b.isin===isin);
+  return PALETTE[idx % PALETTE.length];
+}
+
 function analyse(b,txs){
   const T=txs.filter(t=>t.isin===b.isin).sort((x,y)=>x.date<y.date?-1:x.date>y.date?1:0);
   if(!T.length)return null;
@@ -106,7 +113,11 @@ const lab=k=>new Date(k+'-01T00:00:00Z').toLocaleDateString('en-IN',{month:'long
 const mab=k=>new Date(k+'-01T00:00:00Z').toLocaleDateString('en-IN',{month:'short',timeZone:'UTC'});
 const mkey=i=>{const n=new Date(TODAY);return ISO(Date.UTC(n.getUTCFullYear(),n.getUTCMonth()+i,1)).slice(0,7)};
 
-let S=Object.assign({tab:'over',net:false,sort:'inv_desc',chartType:'bar',q:'',targetGoal:10000000,neftStart:ISO(TODAY).slice(0,7)+'-01',neftEnd:ISO(TODAY)},JSON.parse(localStorage.getItem('fb')||'{}'));
+let S=Object.assign({
+  tab:'over',net:false,sort:'inv_desc',chartType:'bar',q:'',
+  targetGoal:10000000,neftStart:ISO(TODAY).slice(0,7)+'-01',neftEnd:ISO(TODAY),
+  roadmapMode:'monthly',scenarios:{},currentScenario:'Default',lumpsums:{}
+},JSON.parse(localStorage.getItem('fb')||'{}'));
 try{S.data=JSON.parse(localStorage.getItem('fbd'))}catch(e){}
 
 async function api(action,d={}){let j;
@@ -114,8 +125,7 @@ async function api(action,d={}){let j;
     const r=await fetch(API,{method:'POST',body:JSON.stringify({action,token:S.token,...d})});
     j=await r.json();
   }catch(e){
-    console.error(e);
-    throw new Error('Network / CORS error connecting to Apps Script. Check browser console.');
+    throw new Error('Network / Apps Script error. Check web console.');
   }
   if(j.error==='AUTH'){logout();throw new Error('Session expired.')}
   if(j.error)throw new Error(j.error);return j;
@@ -129,10 +139,7 @@ async function load(){
     setData(res);
   }catch(e){
     toast(e.message);
-    if(!S.token) {
-      $('#login').hidden=false;
-      $('#app').hidden=true;
-    }
+    if(!S.token) { $('#login').hidden=false; $('#app').hidden=true; }
   }
 }
 
@@ -140,30 +147,21 @@ async function login(){
   $('#err').textContent='';
   try{
     const j=await api('login',{username:$('#u').value,passphrase:$('#p').value});
-    S.token=j.token;
-    S.user=j.user;
+    S.token=j.token;S.user=j.user;
     localStorage.setItem('fb',JSON.stringify({token:S.token,user:S.user}));
     setData(j);
-  }catch(e){
-    $('#err').textContent=e.message;
-  }
+  }catch(e){$('#err').textContent=e.message}
 }
 
 function logout(){
-  localStorage.removeItem('fb');
-  localStorage.removeItem('fbd');
-  S={tab:'over',net:false,sort:'inv_desc',chartType:'bar',q:''};
+  localStorage.removeItem('fb');localStorage.removeItem('fbd');
+  S={tab:'over',net:false,sort:'inv_desc',chartType:'bar',q:'',roadmapMode:'monthly',scenarios:{},currentScenario:'Default',lumpsums:{}};
   draw();
 }
 
 function draw(){
-  if(!S.token){
-    $('#login').hidden=false;
-    $('#app').hidden=true;
-    return;
-  }
-  $('#login').hidden=true;
-  $('#app').hidden=false;
+  if(!S.token){$('#login').hidden=false;$('#app').hidden=true;return}
+  $('#login').hidden=true;$('#app').hidden=false;
   
   $('#tabs').innerHTML=[['over','Bonds Dashboard'],['int','Interest Calendar'],['reconcile','Bank Reconcile (NEFT)'],['roadmap','Roadmap & Predictions'],['tx','Trades Log']].map(([k,t])=>`<button class="${S.tab===k?'on':''}" onclick="S.tab='${k}';draw()">${t}</button>`).join('');
   
@@ -240,13 +238,14 @@ function vOver(){
   if(S.chartType==='bar'){
     const maxVal=Math.max(1,...act.map(a=>a.gross*kf(a.b.tds)));
     chartHtml=`<div class="chart-container">
-      <h4>Portfolio Payout Distribution (Bar Chart)</h4>
+      <h4>Portfolio Payout Distribution (Color-Matched Bar Chart)</h4>
       <div style="display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:20px;overflow-x:auto">
         ${act.map(a=>{
           const val=a.gross*kf(a.b.tds);
           const h=Math.round((val/maxVal)*110);
+          const c=getBondColor(a.b.isin,S.B.A);
           return `<div style="flex:1;min-width:36px;display:flex;flex-direction:column;align-items:center">
-            <div style="height:${h}px;width:100%;background:var(--ink);border-radius:4px 4px 0 0" title="${a.b.name}: ${f0(val)}"></div>
+            <div style="height:${h}px;width:100%;background:${c};border-radius:4px 4px 0 0" title="${a.b.name}: ${f0(val)}"></div>
             <span class="mut" style="font-size:9px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.b.isin.slice(-4)}</span>
           </div>`
         }).join('')}
@@ -256,16 +255,16 @@ function vOver(){
     const totalV=act.reduce((s,a)=>s+a.cost,0)||1;
     let accum=0;
     chartHtml=`<div class="chart-container">
-      <h4>Capital Invested Share (Donut Chart)</h4>
+      <h4>Capital Invested Share (Color-Matched Donut Chart)</h4>
       <svg viewBox="0 0 42 42" width="160" height="160" style="margin:10px auto;display:block">
         <circle cx="21" cy="21" r="15.9155" fill="none" stroke="var(--rule)" stroke-width="7"/>
-        ${act.map((a,i)=>{
+        ${act.map(a=>{
           const pct=(a.cost/totalV)*100;
           const dash=`${pct} ${100-pct}`;
           const offset=25-accum;
           accum+=pct;
-          const colors=['#58c9a6','#52be80','#f4d03f','#e59866','#af7ac5','#5499c7','#48c9b0'];
-          return `<circle cx="21" cy="21" r="15.9155" fill="none" stroke="${colors[i%colors.length]}" stroke-width="7" stroke-dasharray="${dash}" stroke-dashoffset="${offset}"/>`;
+          const c=getBondColor(a.b.isin,S.B.A);
+          return `<circle cx="21" cy="21" r="15.9155" fill="none" stroke="${c}" stroke-width="7" stroke-dasharray="${dash}" stroke-dashoffset="${offset}"/>`;
         }).join('')}
         <text x="21" y="22" text-anchor="middle" font-size="4" font-weight="700" fill="var(--tx)">${f0(totalV)}</text>
       </svg>
@@ -288,15 +287,16 @@ function vOver(){
     const T=a.gross*kf(a.b.tds),e=a.rec*kf(a.b.tds),Y=a.ytmTotal*kf(a.b.tds);
     const pct=T?Math.min(100,Math.round(e/T*100)):0;
     const isSec=a.b.secured===1||a.b.secured===true||a.b.secured==='1';
-    
+    const c=getBondColor(a.b.isin,S.B.A);
+
     const yrsCrossed=((TODAY-a.start)/DAY/365.25).toFixed(1);
     const yrsPending=((a.mat-TODAY)/DAY/365.25).toFixed(1);
 
     return `
-    <div class="card">
+    <div class="card" style="border-top:4px solid ${c}">
       <div class="card-header">
         <div>
-          <b style="font-size:16px">${esc(a.b.name)}</b>
+          <b style="font-size:16px;color:${c}">${esc(a.b.name)}</b>
           <div class="mut">${a.b.isin}</div>
         </div>
         <span class="badge ${isSec?'badge-sec':'badge-unsec'}">${isSec?'Secured':'Unsecured'}</span>
@@ -313,7 +313,7 @@ function vOver(){
         <div>Monthly: <b>${f0(a.perYear*kf(a.b.tds)/12)}</b></div>
       </div>
       <div class="mut">Progress (${pct}% received)</div>
-      <div class="pbar"><i style="width:${pct}%"></i></div>
+      <div class="pbar"><i style="width:${pct}%;background:${c}"></i></div>
       <div class="row mut" style="font-size:12px;margin-top:6px">
         <span>Earned: ${f0(e)}</span>
         <span>Total YTM: ${f0(Y)}</span>
@@ -407,35 +407,80 @@ async function vReconcile(){
     return dStr>=S.neftStart && dStr<=S.neftEnd;
   }).sort((a,b)=>a.d-b.d);
 
+  const totExp=pays.reduce((s,p)=>s+p.amt*kf(p.tds),0);
+  const totRec=pays.filter(p=>p.rec).reduce((s,p)=>s+p.amt*kf(p.tds),0);
+  const totPend=totExp-totRec;
+
+  const maxVal=Math.max(1,totExp);
+  const recH=Math.round((totRec/maxVal)*100);
+  const pendH=Math.round((totPend/maxVal)*100);
+
   $('#view').innerHTML=`
+    <div class="kpi-container">
+      <div class="kpi-box"><span>Expected Payouts</span><b>${f2(totExp)}</b></div>
+      <div class="kpi-box"><span>Verified Received</span><b>${f2(totRec)}</b></div>
+      <div class="kpi-box"><span>Awaiting Payout</span><b>${f2(totPend)}</b></div>
+    </div>
+
+    <div class="chart-container">
+      <h4>Reconciliation Payout Status (Selected Window)</h4>
+      <div style="display:flex;justify-content:center;align-items:flex-end;gap:30px;height:120px;padding-top:16px">
+        <div style="display:flex;flex-direction:column;align-items:center;width:80px">
+          <div style="height:${recH}px;width:100%;background:var(--ok);border-radius:4px 4px 0 0"></div>
+          <span class="mut" style="font-size:11px;margin-top:4px">Received</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;width:80px">
+          <div style="height:${pendH}px;width:100%;background:var(--gold);border-radius:4px 4px 0 0"></div>
+          <span class="mut" style="font-size:11px;margin-top:4px">Pending</span>
+        </div>
+      </div>
+    </div>
+
     <div class="kpi-box" style="margin-bottom:16px">
-      <b>Bank NEFT Matching & Reconciliation</b>
+      <div class="row">
+        <b>Bank NEFT Matching Window</b>
+        <button onclick="scanNeftMailLive()">🔄 Scan Gmail NEFT Alerts</button>
+      </div>
       <div class="row" style="margin-top:10px;gap:12px">
         <div><label class="mut">From Date: </label><input type="date" id="neftS" value="${S.neftStart}" onchange="S.neftStart=this.value;vReconcile()"></div>
         <div><label class="mut">To Date: </label><input type="date" id="neftE" value="${S.neftEnd}" onchange="S.neftEnd=this.value;vReconcile()"></div>
-        <button onclick="scanNeftMailLive()">🔄 Scan Gmail NEFT Alerts</button>
       </div>
     </div>
+    
     <div id="neft-results">
       <table>
-        <thead><tr><th>Expected Date</th><th>Bond Name</th><th>Expected Amount</th><th>Status</th></tr></thead>
+        <thead><tr><th>Expected Date</th><th>Bond Name</th><th>Expected Amount</th><th>Status / Click for Thread Link</th></tr></thead>
         <tbody>`+
         (pays.length===0?`<tr><td colspan="4" style="text-align:center" class="mut">No expected payouts in this date range.</td></tr>`:
-        pays.map(p=>`<tr>
-          <td>${fd(p.d)}</td>
-          <td>${esc(p.name)}</td>
-          <td>${f2(p.amt*kf(p.tds))}</td>
-          <td>${p.rec?`<span class="ok">🟢 Marked Received</span>`:`<span class="mut">⌛ Awaiting Payout</span>`}</td>
-        </tr>`).join(''))+`</tbody></table>
+        pays.map((p,idx)=>{
+          const mail=S.neftLogs?.find(l=>Math.abs(l.amount-p.amt)<=2 && Math.abs(UTC(l.date)-p.d)<=3*DAY);
+          return `<tr class="clickable-row" onclick="toggleNeftLink(${idx})">
+            <td>${fd(p.d)}</td>
+            <td>${esc(p.name)}</td>
+            <td>${f2(p.amt*kf(p.tds))}</td>
+            <td>
+              ${p.rec?`<span class="ok">🟢 Marked Received</span>`:`<span class="mut">⌛ Awaiting Payout</span>`}
+              <div id="nlink_${idx}" hidden style="margin-top:6px;font-size:12px">
+                ${mail&&mail.link?`<a href="${mail.link}" target="_blank" style="color:var(--ink);text-decoration:underline">🔗 Open Gmail Source Thread ↗</a>`:`<span class="mut">No raw email link available</span>`}
+              </div>
+            </td>
+          </tr>`
+        }).join(''))+`</tbody></table>
     </div>`;
+}
+
+function toggleNeftLink(idx){
+  const el=$('#nlink_'+idx);
+  if(el) el.hidden = !el.hidden;
 }
 
 async function scanNeftMailLive(){
   toast('Scanning Gmail threads...');
   try{
     const res=await api('scanNeft');
-    toast(`Scan complete. Found ${res.neftLogs?.length||0} alerts.`);
-    draw();
+    S.neftLogs = res.neftLogs || [];
+    toast(`Scan complete. Found ${S.neftLogs.length} alerts.`);
+    vReconcile();
   }catch(e){toast('Error: '+e.message)}
 }
 
@@ -452,43 +497,163 @@ function vRoadmap(){
 
   const activeBonds=S.B.A.filter(a=>a.active);
   const weightedYtm=activeBonds.reduce((s,a)=>s+a.cost*a.b.ytm,0)/(activeBonds.reduce((s,a)=>s+a.cost,0)||1);
-
   const goal=S.targetGoal||10000000;
-  let monthsToGoal=0,currCap=totalInv;
   const monthlyRate=(weightedYtm/100)/12;
-  const monthlyContrib=+S.customMonthlyInv;
 
-  while(currCap<goal && monthsToGoal<600){
-    currCap+=monthlyContrib+(currCap*monthlyRate);
-    monthsToGoal++;
+  // Build projected simulation schedule month-by-month
+  const schedule=[];
+  let currCap=totalInv;
+  let monthsCount=0;
+  let now=new Date(TODAY);
+  let accumulatedInt=0;
+
+  while(currCap<goal && monthsCount<360){
+    monthsCount++;
+    now=new Date(now.setUTCMonth(now.getUTCMonth()+1));
+    const mStr=ISO(now.getTime()).slice(0,7);
+    const lump=S.lumpsums[mStr]||0;
+    const baseContrib=+S.customMonthlyInv;
+    const totalAddedThisMonth=baseContrib+lump;
+    
+    const monthlyInt=currCap*monthlyRate;
+    accumulatedInt+=monthlyInt;
+    currCap+=totalAddedThisMonth+monthlyInt;
+
+    schedule.push({
+      monthKey:mStr,
+      dateLabel:lab(mStr),
+      year:now.getUTCFullYear(),
+      contrib:baseContrib,
+      lump,
+      totalAdded:totalAddedThisMonth,
+      interest:monthlyInt,
+      accumulatedInt,
+      endBalance:currCap
+    });
   }
-  const targetYear=(new Date().getFullYear()+Math.floor(monthsToGoal/12));
+
+  const targetYear=schedule.length?schedule[schedule.length-1].year:new Date().getFullYear();
+
+  // Aggregate yearly view data
+  const yearlyObj={};
+  schedule.forEach(s=>{
+    if(!yearlyObj[s.year]) yearlyObj[s.year]={year:s.year,totalAdded:0,totalInt:0,endBalance:0};
+    yearlyObj[s.year].totalAdded+=s.totalAdded;
+    yearlyObj[s.year].totalInt+=s.interest;
+    yearlyObj[s.year].endBalance=s.endBalance;
+  });
 
   $('#view').innerHTML=`
     <div class="kpi-container">
       <div class="kpi-box"><span>Historical Avg Monthly Investment</span><b>${f0(defaultAvgMonthly)}</b></div>
       <div class="kpi-box"><span>Portfolio Weighted YTM</span><b>${weightedYtm.toFixed(2)}%</b></div>
       <div class="kpi-box"><span>Target Wealth Goal</span><b>${fc(goal)}</b></div>
-      <div class="kpi-box"><span>Estimated Horizon</span><b>${(monthsToGoal/12).toFixed(1)} Years (${targetYear})</b></div>
+      <div class="kpi-box"><span>Estimated Horizon</span><b>${(monthsCount/12).toFixed(1)} Years (${targetYear})</b></div>
     </div>
 
     <div class="kpi-box" style="margin-top:16px">
-      <h3>🎯 Financial Freedom & Contribution Simulator</h3>
+      <div class="row">
+        <h3>🎯 Financial Freedom & Contribution Simulator</h3>
+        <div class="row">
+          <label class="mut">Scenario: </label>
+          <select id="scenSel" onchange="switchScenario(this.value)">
+            <option value="Default">Default Strategy</option>
+            ${Object.keys(S.scenarios).map(k=>`<option value="${k}" ${S.currentScenario===k?'selected':''}>${k}</option>`).join('')}
+          </select>
+          <button class="ghost" onclick="saveScenarioPrompt()">💾 Save Current Scenario</button>
+        </div>
+      </div>
+      
       <div class="row" style="gap:16px;margin-top:12px">
         <div>
           <label class="mut">Target Wealth Goal (₹):</label>
-          <input type="number" id="goalInput" value="${goal}" onchange="S.targetGoal=+this.value;draw()">
+          <input type="number" value="${goal}" onchange="S.targetGoal=+this.value;draw()">
         </div>
         <div>
           <label class="mut">Monthly Investment From Next Month (₹):</label>
-          <input type="number" id="monthlyContribInput" value="${S.customMonthlyInv}" oninput="S.customMonthlyInv=+this.value;draw()">
+          <input type="number" value="${S.customMonthlyInv}" oninput="S.customMonthlyInv=+this.value;draw()">
         </div>
       </div>
       <p class="mut" style="margin-top:14px">
-        Investing <b>${f0(monthlyContrib)}/month</b> starting next month at <b>${weightedYtm.toFixed(2)}%</b> YTM will achieve your goal of <b>${f0(goal)}</b> in <b>${monthsToGoal} months</b> (~${(monthsToGoal/12).toFixed(1)} Years, around ${targetYear}).
+        Investing <b>${f0(S.customMonthlyInv)}/month</b> at <b>${weightedYtm.toFixed(2)}%</b> YTM will reach <b>${f0(goal)}</b> in <b>${monthsCount} months</b> (~${(monthsCount/12).toFixed(1)} Years, ${targetYear}).
       </p>
     </div>
-  `;
+
+    <div class="kpi-box" style="margin-top:16px">
+      <div class="row">
+        <h4>Future Projections & Capital Accumulation Table</h4>
+        <div class="seg">
+          <button class="${S.roadmapMode==='monthly'?'on':''}" onclick="S.roadmapMode='monthly';draw()">Monthly View</button>
+          <button class="${S.roadmapMode==='yearly'?'on':''}" onclick="S.roadmapMode='yearly';draw()">Yearly Summary</button>
+        </div>
+      </div>
+
+      <table style="margin-top:12px">
+        <thead>
+          <tr>
+            <th>${S.roadmapMode==='monthly'?'Month':'Year'}</th>
+            <th>Monthly / Capital Added</th>
+            <th>Lump-Sum Bonus</th>
+            <th>Interest Earned</th>
+            <th>Total Portfolio Value</th>
+            ${S.roadmapMode==='monthly'?'<th>Action</th>':''}
+          </tr>
+        </thead>
+        <tbody>`+
+        (S.roadmapMode==='monthly'?
+          schedule.map(s=>`<tr>
+            <td>${s.dateLabel}</td>
+            <td>${f0(s.contrib)}</td>
+            <td class="${s.lump?'ok':''}">${s.lump?f0(s.lump):'-'}</td>
+            <td class="ok">${f0(s.interest)}</td>
+            <td><b>${f0(s.endBalance)}</b></td>
+            <td><button class="ghost" style="padding:2px 8px;font-size:11px" onclick="editLumpSum('${s.monthKey}',${s.lump})">Edit Bonus</button></td>
+          </tr>`).join('')
+          :
+          Object.values(yearlyObj).map(y=>`<tr>
+            <td><b>${y.year}</b></td>
+            <td>${f0(y.totalAdded)}</td>
+            <td>-</td>
+            <td class="ok">${f0(y.totalInt)}</td>
+            <td><b>${f0(y.endBalance)}</b></td>
+          </tr>`).join('')
+        )+`</tbody></table></div>`;
+}
+
+function editLumpSum(mKey,current){
+  const val=prompt(`Enter one-off lump-sum investment / bonus for ${lab(mKey)} (₹):`,current||0);
+  if(val!==null){
+    S.lumpsums[mKey]=+val||0;
+    draw();
+  }
+}
+
+function saveScenarioPrompt(){
+  const name=prompt('Enter a name for this investment scenario:');
+  if(name){
+    S.scenarios[name]={
+      targetGoal:S.targetGoal,
+      customMonthlyInv:S.customMonthlyInv,
+      lumpsums:JSON.parse(JSON.stringify(S.lumpsums))
+    };
+    S.currentScenario=name;
+    localStorage.setItem('fb',JSON.stringify(S));
+    toast('Scenario saved!');
+    draw();
+  }
+}
+
+function switchScenario(name){
+  if(name==='Default'){
+    S.currentScenario='Default';
+    S.lumpsums={};
+  }else if(S.scenarios[name]){
+    S.currentScenario=name;
+    S.targetGoal=S.scenarios[name].targetGoal;
+    S.customMonthlyInv=S.scenarios[name].customMonthlyInv;
+    S.lumpsums=JSON.parse(JSON.stringify(S.scenarios[name].lumpsums));
+  }
+  draw();
 }
 
 function vTx(){
@@ -524,11 +689,5 @@ async function saveBuy(){
 
 async function delTx(id){if(confirm('Delete transaction?'))setData(await api('delTx',{id}))}
 
-// Initial boot check
-if(S.token){
-  load();
-}else{
-  $('#login').hidden=false;
-  $('#app').hidden=true;
-}
+if(S.token){ load(); }else{ $('#login').hidden=false; $('#app').hidden=true; }
 </script></body></html>
