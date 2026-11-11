@@ -27,6 +27,10 @@ details{border-bottom:1px solid var(--rule);padding:10px 0}summary{cursor:pointe
 .ml{display:flex;gap:3px;font-size:10px;text-align:center;color:var(--mut);margin-top:3px}.ml span{flex:1}
 #sheet{position:fixed;inset:0;background:rgba(5,15,12,.55);z-index:5;overflow:auto}#sh{background:var(--bg);margin:40px auto 0;max-width:560px;min-height:100%;padding:18px 16px 40px;border-radius:16px 16px 0 0}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--on);padding:10px 16px;border-radius:99px;z-index:9}
+.kr{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:6px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--rule)}.kr b{text-align:right;font:700 17px Georgia,serif;color:var(--ink)}.kr.kh span{text-align:right}.kr.kh span:first-child{text-align:left}
+.pbar{height:8px;background:var(--rule);border-radius:4px;overflow:hidden;margin:4px 0 8px}.pbar i{display:block;height:100%;background:var(--ink)}
+.bb{position:relative;display:flex;height:12px;background:var(--rule);border-radius:3px;margin:8px 0 4px}.bb i{display:block;height:100%;background:var(--ink)}.bb i.to{opacity:.4}.bb b{position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--tx);border-radius:2px}
+.lg{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:14px}.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
 </style></head><body><main>
 <section id="login" hidden>
   <div class="big" style="margin-top:60px">Finance</div><p class="mut">Sign in to continue.</p>
@@ -90,19 +94,35 @@ function draw(){
   if(!S.data){$('#view').innerHTML='<p class=mut>Loading…</p>';return}
   S.B=build(S.data);({over:vOver,int:vInt,tx:vTx})[S.tab]()}
 const kf=t=>S.net?1-t/100:1;
+const fc=n=>n>=1e7?'₹'+(n/1e7).toFixed(2)+' Cr':n>=1e5?'₹'+(n/1e5).toFixed(2)+' L':f0(n);
+const sn=a=>a.b.name.replace(/ (Ltd|Limited|Financiers|Finance)\b.*$/i,'')+' '+a.b.isin.slice(-4);
+function donut(P,mid){const T=P.reduce((s,p)=>s+p.v,0)||1;let off=25;
+  return `<svg viewBox="0 0 42 42" width="190" height="190" style="display:block;margin:6px auto" role="img" aria-label="Share by bond"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="var(--rule)" stroke-width="7"/>${P.map(p=>{const d=p.v/T*100,c=`<circle cx="21" cy="21" r="15.9155" fill="none" stroke="${p.c}" stroke-width="7" stroke-dasharray="${d} ${100-d}" stroke-dashoffset="${off}"/>`;off-=d;return c}).join('')}<text x="21" y="22.2" text-anchor="middle" font-size="4" font-weight="700" fill="var(--tx)">${mid}</text></svg>`}
+function kpi(L){const s=g=>L.reduce((t,a)=>t+g(a)*kf(a.b.tds),0),e=s(a=>a.rec),T=s(a=>a.gross),ye=s(a=>a.ytmAcc),yT=s(a=>a.ytmTotal);
+  const row=(l,c,y)=>`<div class=kr><span>${l}</span><b>${f0(c)}</b><b>${f0(y)}</b></div>`,pc=(x,t)=>t?Math.round(Math.min(100,x/t*100)):0,pb=(x,t)=>`<div class=pbar><i style="width:${pc(x,t)}%"></i></div>`;
+  return `<div class="kr kh"><span></span><span class=mut>Coupon</span><span class=mut>At YTM</span></div>${row('Earned till today',e,ye)}${row('Still to come',T-e,yT-ye)}${row('Total, start to maturity',T,yT)}
+  <div class=mut style="margin-top:8px">${pc(e,T)}% of coupon interest earned</div>${pb(e,T)}<div class=mut>${pc(ye,yT)}% of YTM return accrued</div>${pb(ye,yT)}`}
 function vOver(){
-  const act=S.B.A.filter(a=>a.active).sort((a,b)=>a.mat-b.mat),sold=S.B.A.filter(a=>!a.active&&a.u===0);
+  const act=S.B.A.filter(a=>a.active).sort((a,b)=>a.mat-b.mat),sold=S.B.A.filter(a=>!a.active&&a.u===0),K=a=>kf(a.b.tds);
   const R=[['Per month',a=>a.perYear/12,a=>a.ytmYear/12],['Per year',a=>a.perYear,a=>a.ytmYear],['Till date (received / accrued)',a=>a.rec,a=>a.ytmAcc],['To maturity (remaining)',a=>a.rem,a=>a.ytmRem],['Total, start to maturity',a=>a.gross,a=>a.ytmTotal]];
-  const tbl=L=>`<table><tr><th></th><th>Coupon</th><th>At YTM</th></tr>${R.map(([t,c,y])=>`<tr><td>${t}</td><td>${f0(L.reduce((s,a)=>s+c(a)*kf(a.b.tds),0))}</td><td>${f0(L.reduce((s,a)=>s+y(a)*kf(a.b.tds),0))}</td></tr>`).join('')}</table>`;
-  const inv=act.reduce((s,a)=>s+a.cost,0),face=act.reduce((s,a)=>s+a.u*a.b.face,0),cm=ISO(TODAY).slice(0,7);
-  const mp=S.B.pays.filter(p=>ISO(p.d).slice(0,7)===cm),mr=mp.filter(p=>p.rec).reduce((s,p)=>s+p.amt*kf(p.tds),0),mq=mp.filter(p=>!p.rec).reduce((s,p)=>s+p.amt*kf(p.tds),0);
+  const tbl=L=>`<table><tr><th></th><th>Coupon</th><th>At YTM</th></tr>${R.map(([t,c,y])=>`<tr><td>${t}</td><td>${f0(L.reduce((s,a)=>s+c(a)*K(a),0))}</td><td>${f0(L.reduce((s,a)=>s+y(a)*K(a),0))}</td></tr>`).join('')}</table>`;
+  S.pm=S.pm||'T';const val={T:a=>a.gross*K(a),E:a=>a.rec*K(a),I:a=>a.cost}[S.pm];
+  const P=act.map((a,i)=>({a,c:`hsl(${Math.round(i*360/act.length)+150} 55% 52%)`,v:val(a)})),TT=P.reduce((s,p)=>s+p.v,0);
+  const mx=Math.max(1,...act.map(a=>Math.max(a.gross,a.ytmTotal)*K(a))),inv=act.reduce((s,a)=>s+a.cost,0),face=act.reduce((s,a)=>s+a.u*a.b.face,0),yr=act.reduce((s,a)=>s+a.perYear*K(a),0);
+  const bch=a=>{const g={};a.pays.forEach(p=>{const m=ISO(p.d).slice(0,7);g[m]=g[m]||{r:0,p:0};g[m][p.rec?'r':'p']+=p.amt*K(a)});const W=Array.from({length:19},(_,i)=>mkey(i-6)),m2=Math.max(1,...W.map(m=>(g[m]?.r||0)+(g[m]?.p||0)));
+    return `<div class=chart style="height:80px">${W.map(m=>`<div class=mb><b style="height:${(g[m]?.r||0)/m2*100}%"></b><u style="height:${(g[m]?.p||0)/m2*100}%"></u></div>`).join('')}</div><div class=ml>${W.map(m=>`<span>${mab(m)[0]}</span>`).join('')}</div>`};
   $('#view').innerHTML=`<div class=seg><button class="${S.net?'':'on'}" onclick="S.net=false;draw()">Before TDS</button><button class="${S.net?'on':''}" onclick="S.net=true;draw()">After TDS</button></div>
-  <div class=panel><div class=big>${f0(inv)} <small>invested, face ${f0(face)}</small></div>
-  <div class=mut>${lab(cm)}: ${f0(mr)} received, ${f0(mq)} still to come</div>${tbl(act)}</div>`+
-  act.map(a=>`<details><summary><div class=row><b>${esc(a.b.name)}</b><span>${f0(a.perYear*kf(a.b.tds))}<span class=mut>/yr</span></span></div><div class="row mut"><span>${a.b.isin} · ${a.u} units</span><span>${a.b.coupon}% · YTM ${a.b.ytm}%</span></div></summary>
-  <div class=mut style="margin:8px 0">Start ${fd(a.start)} · Maturity ${fd(a.mat)} · ${((a.mat-TODAY)/DAY/365.25).toFixed(1)} yrs left<br>Invested ${f0(a.cost)} · Face ${f0(a.u*a.b.face)} · At maturity ${a.u*a.b.face-a.cost<0?'loss':'gain'} ${f0(Math.abs(a.u*a.b.face-a.cost))} vs cost</div>${tbl([a])}</details>`).join('')+
+  <div class=panel><h4>All bonds together</h4><div class=mut style="margin-bottom:6px">Invested ${f0(inv)} · Face ${f0(face)} · About ${f0(yr/12)} a month, ${f0(yr)} a year</div>${kpi(act)}</div>
+  <div class=panel><h4>Where the interest comes from</h4><div class=seg>${[['T','Total to maturity'],['E','Earned so far'],['I','Invested']].map(([k,t])=>`<button class="${S.pm===k?'on':''}" onclick="S.pm='${k}';draw()">${t}</button>`).join('')}</div>${donut(P,fc(TT))}
+  ${[...P].sort((x,y)=>y.v-x.v).map(p=>`<div class=lg><span><i style="background:${p.c}"></i>${esc(sn(p.a))}</span><span>${f0(p.v)} <span class=mut>${TT?(p.v/TT*100).toFixed(1):0}%</span></span></div>`).join('')}</div>
+  <div class=panel style="border:0;padding-bottom:0"><h4>Each bond: earned and still to come</h4><div class=mut>Solid = earned till today. Light = still to come on coupons. Black line = total at YTM. Tap a bond to open it.</div></div>`+
+  act.map(a=>{const T=a.gross*K(a),e=a.rec*K(a),Y=a.ytmTotal*K(a);
+    return `<details><summary><div class=row><b>${esc(a.b.name)}</b><span class=mut>${a.b.isin}</span></div><div class=bb><i style="width:${e/mx*100}%"></i><i class=to style="width:${(T-e)/mx*100}%"></i><b style="left:${Y/mx*100}%"></b></div>
+    <div class="row mut" style="font-size:13px"><span>Earned ${f0(e)}</span><span>Total ${f0(T)}</span><span>At YTM ${f0(Y)}</span></div></summary>
+    <div class=mut style="margin:10px 0">${a.u} units · coupon ${a.b.coupon}% · YTM ${a.b.ytm}%<br>Start ${fd(a.start)} · Maturity ${fd(a.mat)} · ${((a.mat-TODAY)/DAY/365.25).toFixed(1)} yrs left<br>Invested ${f0(a.cost)} · Face ${f0(a.u*a.b.face)} · At maturity ${a.u*a.b.face-a.cost<0?'loss':'gain'} ${f0(Math.abs(a.u*a.b.face-a.cost))} vs cost</div>
+    ${kpi([a])}<div class=mut style="margin:12px 0 4px">Interest by month (solid = received, light = projected)</div>${bch(a)}<div style="height:10px"></div>${tbl([a])}</details>`}).join('')+
   (sold.length?`<div class=panel><h4>Sold</h4>${sold.map(a=>`<div class=row><span>${esc(a.b.name)} <span class=mut>${a.b.isin}</span></span><span class="${a.real<0?'bad':'ok'}">${f0(a.real)}</span></div>`).join('')}</div>`:'')+
-  `<p class=mut>Interest = units × face × coupon × days ÷ 365, from your deal date, paid on each bond's payment day. At YTM = cost × YTM a year, and cost × ((1+YTM)^years − 1) to maturity, which assumes coupons are reinvested at the YTM. After TDS applies each bond's TDS % to every interest figure. Estimates, not advice.</p>`}
+  `<p class=mut>Interest = units × face × coupon × days ÷ 365, from your deal date, paid on each bond's payment day. At YTM = cost × ((1+YTM)^years − 1), which assumes coupons are reinvested at the YTM. After TDS applies each bond's TDS % to every interest figure. Estimates, not advice.</p>`}
 function vInt(){
   const cur=mkey(0),g={};S.mo=S.mo||cur;
   S.B.pays.forEach(p=>{const m=ISO(p.d).slice(0,7),x=g[m]=g[m]||{r:0,p:0,L:[]};x[p.rec?'r':'p']+=p.amt*kf(p.tds);x.L.push(p)});
