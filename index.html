@@ -26,7 +26,7 @@ nav button.on{color:var(--ink);border-color:var(--ink);font-weight:700}
 .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;display:inline-block}
 .badge-sec{background:#194d33;color:#7dcea0}
 .badge-unsec{background:#4a1b17;color:#f5b7b1}
-.kpi-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}
+.kpi-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:16px 0}
 .kpi-box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px;box-shadow:var(--shadow)}
 .kpi-box span{display:block;font-size:12px;color:var(--mut)}.kpi-box b{font-size:22px;color:var(--ink);font-family:Georgia,serif}
 .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--panel);padding:12px 16px;border-radius:10px;border:1px solid var(--rule);margin-bottom:16px}
@@ -40,6 +40,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{font-weight:600;colo
 .date-header{background:var(--ink-light);padding:10px 16px;font-weight:700;color:var(--ink);display:flex;justify-content:space-between}
 .chart-container{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:20px;margin:16px 0;text-align:center}
 .clickable-row{cursor:pointer}.clickable-row:hover{background:var(--ink-light)}
+.chart-bar{cursor:pointer;transition:opacity .15s}.chart-bar:hover{opacity:0.85}
+.donut-slice{cursor:pointer;transition:transform .15s}.donut-slice:hover{opacity:0.85}
 </style></head><body><main>
 <section id="login" hidden>
   <div style="max-width:360px;margin:80px auto;text-align:center" class="kpi-box">
@@ -52,7 +54,11 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{font-weight:600;colo
 <section id="app" hidden>
   <div class="row">
     <div><b style="font-size:20px;color:var(--ink)">Finance PA · Bond Portfolio</b><span id="match-count" class="mut" style="margin-left:12px"></span></div>
-    <div class="row"><button class="ghost" onclick="load()">🔄 Refresh</button><button class="ghost" onclick="logout()">Log out</button></div>
+    <div class="row">
+      <button class="ghost" onclick="S.q='';$('#q').value='';draw()">❌ Clear Filter</button>
+      <button class="ghost" onclick="load()">🔄 Refresh</button>
+      <button class="ghost" onclick="logout()">Log out</button>
+    </div>
   </div>
   <nav id="tabs"></nav>
   <div class="toolbar">
@@ -124,9 +130,7 @@ async function api(action,d={}){let j;
   try{
     const r=await fetch(API,{method:'POST',body:JSON.stringify({action,token:S.token,...d})});
     j=await r.json();
-  }catch(e){
-    throw new Error('Network / Apps Script error. Check web console.');
-  }
+  }catch(e){throw new Error('Network / Apps Script error.')}
   if(j.error==='AUTH'){logout();throw new Error('Session expired.')}
   if(j.error)throw new Error(j.error);return j;
 }
@@ -181,6 +185,7 @@ function filterBonds(A){
   if(!rawQ)return A;
 
   return A.filter(a=>{
+    if(rawQ.startsWith('isin:')) return a.b.isin.toLowerCase()===rawQ.split(':')[1];
     if(rawQ.includes(':') || rawQ.includes('>')){
       const parts=rawQ.split(/\s+/);
       let match=true;
@@ -229,6 +234,7 @@ function vOver(){
   const face=act.reduce((s,a)=>s+a.u*a.b.face,0);
   const yr=act.reduce((s,a)=>s+a.perYear*kf(a.b.tds),0);
   const grossTot=act.reduce((s,a)=>s+a.gross*kf(a.b.tds),0);
+  const totalPayoutVal = inv + grossTot;
   const absReturnPct=inv?((grossTot/inv)*100).toFixed(1):0;
 
   const minStart=act.length?Math.min(...act.map(a=>a.start)):TODAY;
@@ -238,14 +244,14 @@ function vOver(){
   if(S.chartType==='bar'){
     const maxVal=Math.max(1,...act.map(a=>a.gross*kf(a.b.tds)));
     chartHtml=`<div class="chart-container">
-      <h4>Portfolio Payout Distribution (Color-Matched Bar Chart)</h4>
+      <h4>Portfolio Payout Distribution (Click bar to filter bond)</h4>
       <div style="display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:20px;overflow-x:auto">
         ${act.map(a=>{
           const val=a.gross*kf(a.b.tds);
           const h=Math.round((val/maxVal)*110);
           const c=getBondColor(a.b.isin,S.B.A);
-          return `<div style="flex:1;min-width:36px;display:flex;flex-direction:column;align-items:center">
-            <div style="height:${h}px;width:100%;background:${c};border-radius:4px 4px 0 0" title="${a.b.name}: ${f0(val)}"></div>
+          return `<div class="chart-bar" onclick="S.q='isin:${a.b.isin}';$('#q').value='isin:${a.b.isin}';draw()" style="flex:1;min-width:36px;display:flex;flex-direction:column;align-items:center">
+            <div style="height:${h}px;width:100%;background:${c};border-radius:4px 4px 0 0" title="Click to filter: ${a.b.name}"></div>
             <span class="mut" style="font-size:9px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.b.isin.slice(-4)}</span>
           </div>`
         }).join('')}
@@ -255,7 +261,7 @@ function vOver(){
     const totalV=act.reduce((s,a)=>s+a.cost,0)||1;
     let accum=0;
     chartHtml=`<div class="chart-container">
-      <h4>Capital Invested Share (Color-Matched Donut Chart)</h4>
+      <h4>Capital Invested Share (Click slice to filter bond)</h4>
       <svg viewBox="0 0 42 42" width="160" height="160" style="margin:10px auto;display:block">
         <circle cx="21" cy="21" r="15.9155" fill="none" stroke="var(--rule)" stroke-width="7"/>
         ${act.map(a=>{
@@ -264,7 +270,7 @@ function vOver(){
           const offset=25-accum;
           accum+=pct;
           const c=getBondColor(a.b.isin,S.B.A);
-          return `<circle cx="21" cy="21" r="15.9155" fill="none" stroke="${c}" stroke-width="7" stroke-dasharray="${dash}" stroke-dashoffset="${offset}"/>`;
+          return `<circle class="donut-slice" onclick="S.q='isin:${a.b.isin}';$('#q').value='isin:${a.b.isin}';draw()" cx="21" cy="21" r="15.9155" fill="none" stroke="${c}" stroke-width="7" stroke-dasharray="${dash}" stroke-dashoffset="${offset}"><title>Click to filter: ${a.b.name}</title></circle>`;
         }).join('')}
         <text x="21" y="22" text-anchor="middle" font-size="4" font-weight="700" fill="var(--tx)">${f0(totalV)}</text>
       </svg>
@@ -277,6 +283,7 @@ function vOver(){
     <div class="kpi-box"><span>Total Face Value</span><b>${f0(face)}</b></div>
     <div class="kpi-box"><span>Monthly Income</span><b>${f0(yr/12)}</b></div>
     <div class="kpi-box"><span>Total Earnings + YTM</span><b>${f0(grossTot)} <small style="font-size:13px;color:var(--ok)">(+${absReturnPct}%)</small></b></div>
+    <div class="kpi-box"><span>Total Maturity Payout</span><b style="color:var(--ok)">${f0(totalPayoutVal)}</b></div>
     <div class="kpi-box"><span>Investment Horizon</span><b style="font-size:15px">${fd(minStart)} ➔ ${fd(maxMat)}</b></div>
   </div>
 
@@ -453,7 +460,7 @@ async function vReconcile(){
         <tbody>`+
         (pays.length===0?`<tr><td colspan="4" style="text-align:center" class="mut">No expected payouts in this date range.</td></tr>`:
         pays.map((p,idx)=>{
-          const mail=S.neftLogs?.find(l=>Math.abs(l.amount-p.amt)<=2 && Math.abs(UTC(l.date)-p.d)<=3*DAY);
+          const mail=S.neftLogs?.find(l=>Math.abs(l.amount-(p.amt*kf(p.tds)))<=5 && Math.abs(UTC(l.date)-p.d)<=4*DAY);
           return `<tr class="clickable-row" onclick="toggleNeftLink(${idx})">
             <td>${fd(p.d)}</td>
             <td>${esc(p.name)}</td>
@@ -461,7 +468,7 @@ async function vReconcile(){
             <td>
               ${p.rec?`<span class="ok">🟢 Marked Received</span>`:`<span class="mut">⌛ Awaiting Payout</span>`}
               <div id="nlink_${idx}" hidden style="margin-top:6px;font-size:12px">
-                ${mail&&mail.link?`<a href="${mail.link}" target="_blank" style="color:var(--ink);text-decoration:underline">🔗 Open Gmail Source Thread ↗</a>`:`<span class="mut">No raw email link available</span>`}
+                ${mail&&mail.link?`<a href="${mail.link}" target="_blank" style="color:var(--ink);text-decoration:underline" onclick="event.stopPropagation()">🔗 Open Gmail Source Thread ↗</a>`:`<span class="mut">No raw email link available</span>`}
               </div>
             </td>
           </tr>`
@@ -497,10 +504,12 @@ function vRoadmap(){
 
   const activeBonds=S.B.A.filter(a=>a.active);
   const weightedYtm=activeBonds.reduce((s,a)=>s+a.cost*a.b.ytm,0)/(activeBonds.reduce((s,a)=>s+a.cost,0)||1);
+  const currentMonthlyIncome=activeBonds.reduce((s,a)=>s+a.perYear*kf(a.b.tds)/12,0);
+  const currentAnnualIncome=currentMonthlyIncome*12;
+
   const goal=S.targetGoal||10000000;
   const monthlyRate=(weightedYtm/100)/12;
 
-  // Build projected simulation schedule month-by-month
   const schedule=[];
   let currCap=totalInv;
   let monthsCount=0;
@@ -534,7 +543,6 @@ function vRoadmap(){
 
   const targetYear=schedule.length?schedule[schedule.length-1].year:new Date().getFullYear();
 
-  // Aggregate yearly view data
   const yearlyObj={};
   schedule.forEach(s=>{
     if(!yearlyObj[s.year]) yearlyObj[s.year]={year:s.year,totalAdded:0,totalInt:0,endBalance:0};
@@ -545,9 +553,11 @@ function vRoadmap(){
 
   $('#view').innerHTML=`
     <div class="kpi-container">
-      <div class="kpi-box"><span>Historical Avg Monthly Investment</span><b>${f0(defaultAvgMonthly)}</b></div>
+      <div class="kpi-box"><span>Total Capital Invested</span><b>${f0(totalInv)}</b></div>
+      <div class="kpi-box"><span>Current Monthly Received</span><b>${f0(currentMonthlyIncome)}</b></div>
+      <div class="kpi-box"><span>Current Annual Received</span><b>${f0(currentAnnualIncome)}</b></div>
+      <div class="kpi-box"><span>Historical Avg Monthly Invest</span><b>${f0(defaultAvgMonthly)}</b></div>
       <div class="kpi-box"><span>Portfolio Weighted YTM</span><b>${weightedYtm.toFixed(2)}%</b></div>
-      <div class="kpi-box"><span>Target Wealth Goal</span><b>${fc(goal)}</b></div>
       <div class="kpi-box"><span>Estimated Horizon</span><b>${(monthsCount/12).toFixed(1)} Years (${targetYear})</b></div>
     </div>
 
@@ -560,22 +570,22 @@ function vRoadmap(){
             <option value="Default">Default Strategy</option>
             ${Object.keys(S.scenarios).map(k=>`<option value="${k}" ${S.currentScenario===k?'selected':''}>${k}</option>`).join('')}
           </select>
-          <button class="ghost" onclick="saveScenarioPrompt()">💾 Save Current Scenario</button>
+          <button class="ghost" onclick="saveScenarioPrompt()">💾 Save Scenario</button>
         </div>
       </div>
       
       <div class="row" style="gap:16px;margin-top:12px">
         <div>
           <label class="mut">Target Wealth Goal (₹):</label>
-          <input type="number" value="${goal}" onchange="S.targetGoal=+this.value;draw()">
+          <input type="number" id="goalInput" value="${goal}" onchange="S.targetGoal=+this.value;draw()">
         </div>
         <div>
           <label class="mut">Monthly Investment From Next Month (₹):</label>
-          <input type="number" value="${S.customMonthlyInv}" oninput="S.customMonthlyInv=+this.value;draw()">
+          <input type="number" id="monthlyContribInput" value="${S.customMonthlyInv}" onchange="S.customMonthlyInv=+this.value;draw()" placeholder="Press Enter / Blur to update">
         </div>
       </div>
       <p class="mut" style="margin-top:14px">
-        Investing <b>${f0(S.customMonthlyInv)}/month</b> at <b>${weightedYtm.toFixed(2)}%</b> YTM will reach <b>${f0(goal)}</b> in <b>${monthsCount} months</b> (~${(monthsCount/12).toFixed(1)} Years, ${targetYear}).
+        Investing <b>${f0(S.customMonthlyInv)}/month</b> starting next month at <b>${weightedYtm.toFixed(2)}%</b> YTM will achieve your goal of <b>${f0(goal)}</b> in <b>${monthsCount} months</b> (~${(monthsCount/12).toFixed(1)} Years, around ${targetYear}).
       </p>
     </div>
 
