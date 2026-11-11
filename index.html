@@ -3,45 +3,42 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f5e4d"><title>Finance PA · Bond Portfolio</title>
 <style>
-:root{color-scheme:light dark;--bg:#0b1210;--panel:#131e1a;--tx:#e3ece8;--mut:#859e95;--ink:#58c9a6;--ink-light:#152b24;--on:#081712;--rule:#20332c;--bad:#f1948a;--ok:#52be80;--gold:#f4d03f;--shadow:0 4px 14px rgba(0,0,0,0.3)}
+:root{color-scheme:dark;--bg:#0b1210;--panel:#131e1a;--tx:#e3ece8;--mut:#859e95;--ink:#58c9a6;--ink-light:#152b24;--on:#081712;--rule:#20332c;--bad:#f1948a;--ok:#52be80;--shadow:0 4px 14px rgba(0,0,0,.3)}
 *{box-sizing:border-box}[hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:0}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 main{max-width:1400px;margin:0 auto;padding:20px}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .mut{color:var(--mut);font-size:13px}.bad{color:var(--bad)}.ok{color:var(--ok)}
-button{font:inherit;border:0;border-radius:8px;padding:10px 16px;background:var(--ink);color:var(--on);font-weight:600;cursor:pointer;transition:opacity .15s}
-button.ghost{background:none;color:var(--ink);padding:6px 12px;border:1px solid var(--rule)}
-button:disabled{opacity:.5}
+button{font:inherit;border:0;border-radius:8px;padding:10px 16px;background:var(--ink);color:var(--on);font-weight:600;cursor:pointer}
+button.ghost{background:none;color:var(--ink);padding:6px 12px;border:1px solid var(--rule)}button:disabled{opacity:.5}
 input,select{font:inherit;padding:10px 12px;border:1px solid var(--rule);border-radius:8px;background:var(--panel);color:var(--tx);margin:4px 0}
 .big{font:700 32px/1.1 Georgia,serif;color:var(--ink);margin:8px 0 4px}
 nav{display:flex;gap:6px;border-bottom:2px solid var(--rule);margin:16px 0 12px;overflow-x:auto}
 nav button{background:none;color:var(--mut);border-radius:0;padding:10px 16px;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
 nav button.on{color:var(--ink);border-color:var(--ink);font-weight:700}
 .seg{display:flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden;background:var(--panel);padding:2px}
-.seg button{flex:1;background:transparent;color:var(--tx);border-radius:6px;padding:8px 14px;font-size:13px;font-weight:500;border:0}
+.seg button{flex:1;background:transparent;color:var(--tx);border-radius:6px;padding:8px 14px;font-size:13px;font-weight:500}
 .seg button.on{background:var(--ink);color:var(--on);font-weight:700}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-top:16px}
-.card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:space-between;position:relative;transition:border-color .2s}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
 .card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
-.badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;display:inline-block}
-.badge-sec{background:#194d33;color:#7dcea0}
-.badge-unsec{background:#4a1b17;color:#f5b7b1}
+.badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase}
+.badge-sec{background:#194d33;color:#7dcea0}.badge-unsec{background:#4a1b17;color:#f5b7b1}
 .kpi-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:16px 0}
 .kpi-box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px;box-shadow:var(--shadow)}
 .kpi-box span{display:block;font-size:12px;color:var(--mut)}.kpi-box b{font-size:22px;color:var(--ink);font-family:Georgia,serif}
 .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--panel);padding:12px 16px;border-radius:10px;border:1px solid var(--rule);margin-bottom:16px}
-.toolbar input[type="search"]{min-width:280px;flex:1}
+.toolbar input[type=search]{min-width:260px;flex:1}
 #sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99;overflow:auto;display:flex;justify-content:center;align-items:center}
-#sh{background:var(--bg);width:100%;max-width:620px;max-height:90vh;overflow-y:auto;padding:24px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.3);border:1px solid var(--rule)}
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--on);padding:10px 20px;border-radius:99px;z-index:100;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+#sh{background:var(--bg);width:100%;max-width:620px;max-height:90vh;overflow-y:auto;padding:24px;border-radius:16px;border:1px solid var(--rule)}
+#sh input,#sh select{width:100%}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--on);padding:10px 20px;border-radius:99px;z-index:100;font-weight:600}
 table{width:100%;border-collapse:collapse;font-size:14px}th{font-weight:600;color:var(--mut);text-align:right;padding:8px 4px;border-bottom:1px solid var(--rule)}td{padding:8px 4px;border-top:1px solid var(--rule);text-align:right}th:first-child,td:first-child{text-align:left}
-.pbar{height:8px;background:var(--rule);border-radius:4px;overflow:hidden;margin:6px 0}.pbar i{display:block;height:100%;background:var(--ink)}
+.pbar{height:8px;background:var(--rule);border-radius:4px;overflow:hidden;margin:6px 0}.pbar i{display:block;height:100%}
 .date-group{background:var(--panel);border:1px solid var(--rule);border-radius:10px;margin-bottom:12px;overflow:hidden}
 .date-header{background:var(--ink-light);padding:10px 16px;font-weight:700;color:var(--ink);display:flex;justify-content:space-between}
 .chart-container{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:20px;margin:16px 0;text-align:center}
-.clickable-row{cursor:pointer}.clickable-row:hover{background:var(--ink-light)}
-.chart-bar{cursor:pointer;transition:opacity .15s}.chart-bar:hover{opacity:0.85}
-.donut-slice{cursor:pointer;transition:transform .15s}.donut-slice:hover{opacity:0.85}
+.chart-bar,.donut-slice{cursor:pointer}.chart-bar:hover,.donut-slice:hover{opacity:.85}
 </style></head><body><main>
 <section id="login" hidden>
   <div style="max-width:360px;margin:80px auto;text-align:center" class="kpi-box">
@@ -54,54 +51,34 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{font-weight:600;colo
 <section id="app" hidden>
   <div class="row">
     <div><b style="font-size:20px;color:var(--ink)">Finance PA · Bond Portfolio</b><span id="match-count" class="mut" style="margin-left:12px"></span></div>
-    <div class="row">
-      <button class="ghost" onclick="S.q='';$('#q').value='';draw()">❌ Clear Filter</button>
-      <button class="ghost" onclick="load()">🔄 Refresh</button>
-      <button class="ghost" onclick="logout()">Log out</button>
-    </div>
+    <div class="row"><button class="ghost" onclick="setQ('')">Clear filter</button><button class="ghost" onclick="load()">Refresh</button><button class="ghost" onclick="logout()">Log out</button></div>
   </div>
   <nav id="tabs"></nav>
   <div class="toolbar">
-    <input type="search" id="q" placeholder="🔍 Search (e.g. maturity:2028, secured:yes, coupon>10, kosamattam)..." oninput="S.q=this.value;draw()">
+    <input type="search" id="q" placeholder="Search (e.g. maturity:2028, secured:yes, coupon>10, kosamattam)" oninput="S.q=this.value;draw()">
     <select id="sort" onchange="S.sort=this.value;draw()">
-      <option value="inv_desc">Sort: Highest Invested</option>
-      <option value="inc_desc">Sort: Highest Monthly Income</option>
-      <option value="mat_asc">Sort: Earliest Maturity</option>
-      <option value="mat_desc">Sort: Latest Maturity</option>
-      <option value="sec_desc">Sort: Secured First</option>
+      <option value="inv_desc">Sort: Highest Invested</option><option value="inc_desc">Sort: Highest Monthly Income</option>
+      <option value="mat_asc">Sort: Earliest Maturity</option><option value="mat_desc">Sort: Latest Maturity</option><option value="sec_desc">Sort: Secured First</option>
     </select>
-    <div class="seg">
-      <button class="${!S.net?'on':''}" onclick="S.net=false;draw()">Gross</button>
-      <button class="${S.net?'on':''}" onclick="S.net=true;draw()">Net (TDS)</button>
-    </div>
-    <div class="seg">
-      <button class="${S.chartType==='bar'?'on':''}" onclick="S.chartType='bar';draw()">Bar</button>
-      <button class="${S.chartType==='donut'?'on':''}" onclick="S.chartType='donut';draw()">Donut</button>
-    </div>
+    <div id="segs" class="row" style="gap:12px"></div>
   </div>
   <div id="view"></div>
 </section></main>
 <div id="sheet" hidden><div id="sh"></div></div><div id="toast" hidden></div>
 <script>
 const API='https://script.google.com/macros/s/AKfycbxnm9l9eMmKeXikaylc0Fjj4e1_ioYM1gLtUn4X23f7cuJUQyg16li64Ipr8AKUCgYc/exec';
-const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const f0=n=>'₹'+Math.round(n||0).toLocaleString('en-IN'),f2=n=>'₹'+(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
 const DAY=864e5,UTC=s=>{const[a,b,c]=s.split('-').map(Number);return Date.UTC(a,b-1,c)},ISO=t=>new Date(t).toISOString().slice(0,10),eom=(y,m)=>new Date(Date.UTC(y,m+1,0)).getUTCDate();
 let TODAY=(()=>{const d=new Date(Date.now()+19800000);return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())})();
-
+function setToday(t){TODAY=t}
 const PALETTE=['#58c9a6','#52be80','#f4d03f','#e59866','#af7ac5','#5499c7','#48c9b0','#f1948a','#a569bd','#45b39d','#f5b041','#5d6d7e','#a3e4d7','#f9e79f','#d7bde2','#f8c471'];
+const issuer=n=>n.replace(/\s*\(.*?\)/g,'').replace(/\b(Ltd|Limited|Financiers|Finance)\b/gi,'').trim().toLowerCase();
+const bondColor=n=>{let h=0;for(const ch of issuer(n))h=ch.charCodeAt(0)+((h<<5)-h);return PALETTE[Math.abs(h)%PALETTE.length]};
+const sec=b=>+b.secured===1;
 
-function getBondColor(fullName){
-  let baseName = fullName.replace(/\s*\(.*?\)/g, '').replace(/\b(Ltd|Limited|Financiers|Finance)\b/gi, '').trim().toLowerCase();
-  let hash = 0;
-  for(let i = 0; i < baseName.length; i++){ hash = baseName.charCodeAt(i) + ((hash << 5) - hash); }
-  return PALETTE[Math.abs(hash) % PALETTE.length];
-}
-
-function getBaseIssuerQuery(fullName){
-  return fullName.replace(/\s*\(.*?\)/g, '').replace(/\b(Ltd|Limited|Financiers|Finance)\b/gi, '').trim().toLowerCase();
-}
-
+/*CALC_START*/
+// interest per period = units x face x coupon x days / 365, paid on each bond's payment day (31 = month end)
 function analyse(b,txs){
   const T=txs.filter(t=>t.isin===b.isin).sort((x,y)=>x.date<y.date?-1:x.date>y.date?1:0);
   if(!T.length)return null;
@@ -119,511 +96,164 @@ function analyse(b,txs){
   const yt=cost*(Math.pow(1+y,yrs)-1),ya=cost*(Math.pow(1+y,el)-1);
   return{b,u,cost,real,start,mat,pays,gross,rec,rem:gross-rec,rl,perYear:u*b.face*b.coupon/100,ytmYear:cost*y,ytmTotal:yt,ytmAcc:ya,ytmRem:yt-ya,active:u>0&&mat>TODAY};
 }
-
 function build(d){const A=d.bonds.map(b=>analyse(b,d.tx)).filter(Boolean);return{A,pays:A.flatMap(a=>a.pays)}}
+/*CALC_END*/
 const fd=t=>new Date(t).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'});
 const lab=k=>new Date(k+'-01T00:00:00Z').toLocaleDateString('en-IN',{month:'long',year:'numeric',timeZone:'UTC'});
-const mab=k=>new Date(k+'-01T00:00:00Z').toLocaleDateString('en-IN',{month:'short',timeZone:'UTC'});
 const mkey=i=>{const n=new Date(TODAY);return ISO(Date.UTC(n.getUTCFullYear(),n.getUTCMonth()+i,1)).slice(0,7)};
 
-let S=Object.assign({
-  tab:'over',net:false,sort:'inv_desc',chartType:'bar',q:'',
-  targetGoal:10000000,
-  roadmapMode:'monthly',scenarios:{},currentScenario:'Default',lumpsums:{}
-},JSON.parse(localStorage.getItem('fb')||'{}'));
-try{S.data=JSON.parse(localStorage.getItem('fbd'))}catch(e){}
+const lsGet=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const fb=lsGet('fb',{});
+let S={tab:'over',net:false,sort:'inv_desc',chartType:'bar',q:'',targetGoal:10000000,roadmapMode:'monthly',currentScenario:'Default',lumpsums:{},scenarios:lsGet('fsc',{}).scenarios||{},token:fb.token,user:fb.user,data:lsGet('fbd',null)||undefined};
 
 async function api(action,d={}){let j;
-  try{
-    const r=await fetch(API,{method:'POST',body:JSON.stringify({action,token:S.token,...d})});
-    j=await r.json();
-  }catch(e){throw new Error('Network / Apps Script error.')}
+  try{const r=await fetch(API,{method:'POST',body:JSON.stringify({action,token:S.token,...d})});j=await r.json()}catch(e){throw new Error('Network / Apps Script error.')}
   if(j.error==='AUTH'){logout();throw new Error('Session expired.')}
-  if(j.error)throw new Error(j.error);return j;
-}
-
+  if(j.error)throw new Error(j.error);return j}
 function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2400)}
 function setData(j){S.data={bonds:j.bonds,tx:j.tx};try{localStorage.setItem('fbd',JSON.stringify(S.data))}catch(e){}draw()}
-async function load(){
-  try{
-    const res = await api('data');
-    setData(res);
-  }catch(e){
-    toast(e.message);
-    if(!S.token) { $('#login').hidden=false; $('#app').hidden=true; }
-  }
-}
-
-async function login(){
-  $('#err').textContent='';
-  try{
-    const j=await api('login',{username:$('#u').value,passphrase:$('#p').value});
-    S.token=j.token;S.user=j.user;
-    localStorage.setItem('fb',JSON.stringify({token:S.token,user:S.user}));
-    setData(j);
-  }catch(e){$('#err').textContent=e.message}
-}
-
-function logout(){
-  localStorage.removeItem('fb');localStorage.removeItem('fbd');
-  S={tab:'over',net:false,sort:'inv_desc',chartType:'bar',q:'',roadmapMode:'monthly',scenarios:{},currentScenario:'Default',lumpsums:{}};
-  draw();
-}
+async function load(){try{setData(await api('data'))}catch(e){toast(e.message)}}
+async function login(){$('#err').textContent='';
+  try{const j=await api('login',{username:$('#u').value,passphrase:$('#p').value});S.token=j.token;S.user=j.user;localStorage.setItem('fb',JSON.stringify({token:S.token,user:S.user}));setData(j)}catch(e){$('#err').textContent=e.message}}
+function logout(){localStorage.removeItem('fb');localStorage.removeItem('fbd');S={tab:'over',net:false,sort:'inv_desc',chartType:'bar',q:'',targetGoal:S.targetGoal,roadmapMode:'monthly',currentScenario:'Default',lumpsums:{},scenarios:S.scenarios};draw()}
+const setQ=q=>{S.q=q;$('#q').value=q;draw()};
+const kf=t=>S.net?1-t/100:1;
+const seg=(opts,cur,set)=>`<div class="seg">${opts.map(([v,t])=>`<button class="${v===cur?'on':''}" onclick="${set}${typeof v==='string'?`'${v}'`:v};draw()">${t}</button>`).join('')}</div>`;
 
 function draw(){
   if(!S.token){$('#login').hidden=false;$('#app').hidden=true;return}
   $('#login').hidden=true;$('#app').hidden=false;
-  
   $('#tabs').innerHTML=[['over','Bonds Dashboard'],['int','Interest Calendar'],['roadmap','Roadmap & Predictions'],['tx','Trades Log']].map(([k,t])=>`<button class="${S.tab===k?'on':''}" onclick="S.tab='${k}';draw()">${t}</button>`).join('');
-  
-  if(!S.data){
-    $('#view').innerHTML='<p class="mut" style="padding:40px;text-align:center">Loading bond engine…</p>';
-    return;
-  }
-  S.B=build(S.data);
-  ({over:vOver,int:vInt,roadmap:vRoadmap,tx:vTx})[S.tab]();
+  $('#segs').innerHTML=seg([[false,'Gross'],[true,'Net (TDS)']],S.net,'S.net=')+seg([['bar','Bar'],['donut','Donut']],S.chartType,'S.chartType=');
+  $('#sort').value=S.sort;$('#q').value=S.q;
+  if(!S.data){$('#view').innerHTML='<p class="mut" style="padding:40px;text-align:center">Loading bond engine…</p>';return}
+  S.B=build(S.data);({over:vOver,int:vInt,roadmap:vRoadmap,tx:vTx})[S.tab]();
 }
-
-const kf=t=>S.net?1-t/100:1;
-const fc=n=>n>=1e7?'₹'+(n/1e7).toFixed(2)+' Cr':n>=1e5?'₹'+(n/1e5).toFixed(2)+' L':f0(n);
 
 function filterBonds(A){
-  const rawQ=S.q.trim().toLowerCase();
-  if(!rawQ)return A;
-
-  return A.filter(a=>{
-    if(rawQ.startsWith('isin:')) return a.b.isin.toLowerCase()===rawQ.split(':')[1];
-    if(rawQ.includes(':') || rawQ.includes('>')){
-      const parts=rawQ.split(/\s+/);
-      let match=true;
-      parts.forEach(p=>{
-        if(p.startsWith('maturity:')){
-          const yr=p.split(':')[1];
-          if(!new Date(a.mat).toISOString().startsWith(yr))match=false;
-        }else if(p.startsWith('secured:')){
-          const val=p.split(':')[1];
-          const isSec=a.b.secured===1||a.b.secured===true||a.b.secured==='1';
-          if(val==='yes'||val==='true'){if(!isSec)match=false;}
-          else{if(isSec)match=false;}
-        }else if(p.startsWith('coupon>')){
-          const minC=parseFloat(p.split('>')[1]);
-          if(!(a.b.coupon>minC))match=false;
-        }else if(p.startsWith('isin:')){
-          const sub=p.split(':')[1];
-          if(!a.b.isin.toLowerCase().includes(sub))match=false;
-        }else{
-          const term=p;
-          if(!a.b.name.toLowerCase().includes(term)&&!a.b.isin.toLowerCase().includes(term))match=false;
-        }
-      });
-      return match;
-    }
-    return a.b.name.toLowerCase().includes(rawQ)||a.b.isin.toLowerCase().includes(rawQ);
-  });
-}
-
-function sortBonds(A){
-  const list=[...A];
-  if(S.sort==='inv_desc')list.sort((a,b)=>b.cost-a.cost);
-  if(S.sort==='inc_desc')list.sort((a,b)=>b.perYear-a.perYear);
-  if(S.sort==='mat_asc')list.sort((a,b)=>a.mat-b.mat);
-  if(S.sort==='mat_desc')list.sort((a,b)=>b.mat-a.mat);
-  if(S.sort==='sec_desc')list.sort((a,b)=>(b.b.secured||0)-(a.b.secured||0));
-  return list;
-}
+  const q=S.q.trim().toLowerCase();if(!q)return A;
+  return A.filter(a=>{let ok=true;
+    q.split(/\s+/).forEach(p=>{
+      if(p.startsWith('maturity:')){if(!ISO(a.mat).startsWith(p.slice(9)))ok=false}
+      else if(p.startsWith('secured:')){const yes=['yes','true','1'].includes(p.slice(8));if(yes!==sec(a.b))ok=false}
+      else if(p.startsWith('coupon>')){if(!(a.b.coupon>parseFloat(p.slice(7))))ok=false}
+      else if(p.startsWith('isin:')){if(!a.b.isin.toLowerCase().includes(p.slice(5)))ok=false}
+      else if(!a.b.name.toLowerCase().includes(p)&&!a.b.isin.toLowerCase().includes(p))ok=false});
+    return ok})}
+function sortBonds(A){const l=[...A],f={inv_desc:(a,b)=>b.cost-a.cost,inc_desc:(a,b)=>b.perYear-a.perYear,mat_asc:(a,b)=>a.mat-b.mat,mat_desc:(a,b)=>b.mat-a.mat,sec_desc:(a,b)=>(sec(b.b)?1:0)-(sec(a.b)?1:0)}[S.sort];return f?l.sort(f):l}
 
 function vOver(){
-  let act=filterBonds(S.B.A.filter(a=>a.active));
-  act=sortBonds(act);
+  const act=sortBonds(filterBonds(S.B.A.filter(a=>a.active)));
   $('#match-count').textContent=`(${act.length} bonds matching)`;
-
-  const inv=act.reduce((s,a)=>s+a.cost,0);
-  const face=act.reduce((s,a)=>s+a.u*a.b.face,0);
-  const yr=act.reduce((s,a)=>s+a.perYear*kf(a.b.tds),0);
-  const grossTot=act.reduce((s,a)=>s+a.gross*kf(a.b.tds),0);
-  const totalPayoutVal = inv + grossTot;
-  const absReturnPct=inv?((grossTot/inv)*100).toFixed(1):0;
-
-  const minStart=act.length?Math.min(...act.map(a=>a.start)):TODAY;
-  const maxMat=act.length?Math.max(...act.map(a=>a.mat)):TODAY;
-
-  let chartHtml='';
+  const K=a=>kf(a.b.tds),sum=g=>act.reduce((s,a)=>s+g(a),0);
+  const inv=sum(a=>a.cost),face=sum(a=>a.u*a.b.face),yr=sum(a=>a.perYear*K(a)),grossTot=sum(a=>a.gross*K(a)),earnedTot=sum(a=>a.rec*K(a)),ytmTot=sum(a=>a.ytmTotal*K(a));
+  const payout=face+grossTot,ret=inv?((payout-inv)/inv*100).toFixed(1):0; // principal comes back at face value, plus every coupon
+  const minStart=act.length?Math.min(...act.map(a=>a.start)):TODAY,maxMat=act.length?Math.max(...act.map(a=>a.mat)):TODAY;
+  let chart;
   if(S.chartType==='bar'){
-    const maxVal=Math.max(1,...act.map(a=>a.gross*kf(a.b.tds)));
-    chartHtml=`<div class="chart-container">
-      <h4>Portfolio Payout Distribution (Click bar to filter issuer)</h4>
-      <div style="display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:20px;overflow-x:auto">
-        ${act.map(a=>{
-          const val=a.gross*kf(a.b.tds);
-          const h=Math.round((val/maxVal)*110);
-          const c=getBondColor(a.b.name);
-          const issuerQuery=getBaseIssuerQuery(a.b.name);
-          return `<div class="chart-bar" onclick="S.q='${issuerQuery}';$('#q').value='${issuerQuery}';draw()" style="flex:1;min-width:36px;display:flex;flex-direction:column;align-items:center">
-            <div style="height:${h}px;width:100%;background:${c};border-radius:4px 4px 0 0" title="Click to filter: ${a.b.name}"></div>
-            <span class="mut" style="font-size:9px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.b.isin.slice(-4)}</span>
-          </div>`
-        }).join('')}
-      </div>
-    </div>`;
+    const mx=Math.max(1,...act.map(a=>a.gross*K(a)));
+    chart=`<div class="chart-container"><h4>Total coupon interest to maturity, by bond (click a bar to filter its issuer)</h4><div style="display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:20px;overflow-x:auto">${act.map(a=>`<div class="chart-bar" data-q="${esc(issuer(a.b.name))}" onclick="setQ(this.dataset.q)" style="flex:1;min-width:36px;display:flex;flex-direction:column;align-items:center"><div style="height:${Math.round(a.gross*K(a)/mx*110)}px;width:100%;background:${bondColor(a.b.name)};border-radius:4px 4px 0 0" title="${esc(a.b.name)}: ${f0(a.gross*K(a))}"></div><span class="mut" style="font-size:9px;margin-top:4px">${a.b.isin.slice(-4)}</span></div>`).join('')}</div></div>`;
   }else{
-    const totalV=act.reduce((s,a)=>s+a.cost,0)||1;
-    let accum=0;
-    chartHtml=`<div class="chart-container">
-      <h4>Capital Invested Share (Click slice to filter issuer)</h4>
-      <svg viewBox="0 0 42 42" width="160" height="160" style="margin:10px auto;display:block">
-        <circle cx="21" cy="21" r="15.9155" fill="none" stroke="var(--rule)" stroke-width="7"/>
-        ${act.map(a=>{
-          const pct=(a.cost/totalV)*100;
-          const dash=`${pct} ${100-pct}`;
-          const offset=25-accum;
-          accum+=pct;
-          const c=getBondColor(a.b.name);
-          const issuerQuery=getBaseIssuerQuery(a.b.name);
-          return `<circle class="donut-slice" onclick="S.q='${issuerQuery}';$('#q').value='${issuerQuery}';draw()" cx="21" cy="21" r="15.9155" fill="none" stroke="${c}" stroke-width="7" stroke-dasharray="${dash}" stroke-dashoffset="${offset}"><title>Click to filter: ${a.b.name}</title></circle>`;
-        }).join('')}
-        <text x="21" y="22" text-anchor="middle" font-size="4" font-weight="700" fill="var(--tx)">${f0(totalV)}</text>
-      </svg>
-    </div>`;
+    const T=inv||1;let off=25;
+    chart=`<div class="chart-container"><h4>Capital invested, by bond (click a slice to filter its issuer)</h4><svg viewBox="0 0 42 42" width="160" height="160" style="margin:10px auto;display:block"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="var(--rule)" stroke-width="7"/>${act.map(a=>{const p=a.cost/T*100,c=`<circle class="donut-slice" data-q="${esc(issuer(a.b.name))}" onclick="setQ(this.dataset.q)" cx="21" cy="21" r="15.9155" fill="none" stroke="${bondColor(a.b.name)}" stroke-width="7" stroke-dasharray="${p} ${100-p}" stroke-dashoffset="${off}"><title>${esc(a.b.name)}: ${f0(a.cost)}</title></circle>`;off-=p;return c}).join('')}<text x="21" y="22" text-anchor="middle" font-size="4" font-weight="700" fill="var(--tx)">${f0(inv)}</text></svg></div>`;
   }
-
-  $('#view').innerHTML=`
-  <div class="kpi-container">
-    <div class="kpi-box"><span>Total Capital Invested</span><b>${f0(inv)}</b></div>
-    <div class="kpi-box"><span>Total Face Value</span><b>${f0(face)}</b></div>
-    <div class="kpi-box"><span>Monthly Income</span><b>${f0(yr/12)}</b></div>
-    <div class="kpi-box"><span>Total Earnings + YTM</span><b>${f0(grossTot)} <small style="font-size:13px;color:var(--ok)">(+${absReturnPct}%)</small></b></div>
-    <div class="kpi-box"><span>Total Maturity Payout</span><b style="color:var(--ok)">${f0(totalPayoutVal)}</b></div>
-    <div class="kpi-box"><span>Investment Horizon</span><b style="font-size:15px">${fd(minStart)} ➔ ${fd(maxMat)}</b></div>
-  </div>
-
-  ${chartHtml}
-
-  <div class="card-grid">`+
-  act.map(a=>{
-    const T=a.gross*kf(a.b.tds),e=a.rec*kf(a.b.tds),Y=a.ytmTotal*kf(a.b.tds);
-    const pct=T?Math.min(100,Math.round(e/T*100)):0;
-    const isSec=a.b.secured===1||a.b.secured===true||a.b.secured==='1';
-    const c=getBondColor(a.b.name);
-
-    const yrsCrossed=((TODAY-a.start)/DAY/365.25).toFixed(1);
-    const yrsPending=((a.mat-TODAY)/DAY/365.25).toFixed(1);
-
-    return `
-    <div class="card" style="border-top:4px solid ${c}">
-      <div class="card-header">
-        <div>
-          <b style="font-size:16px;color:${c}">${esc(a.b.name)}</b>
-          <div class="mut">${a.b.isin}</div>
-        </div>
-        <span class="badge ${isSec?'badge-sec':'badge-unsec'}">${isSec?'Secured':'Unsecured'}</span>
-      </div>
-      <div style="margin:6px 0;display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:13px">
-        <div>Start Date: <b>${fd(a.start)}</b></div>
-        <div>Maturity: <b>${fd(a.mat)}</b></div>
-        <div>Crossed: <b class="ok">${yrsCrossed} yrs</b></div>
-        <div>Pending: <b class="bad">${yrsPending} yrs</b></div>
-        <div>Invested: <b>${f0(a.cost)}</b></div>
-        <div>Units: <b>${a.u}</b></div>
-        <div>Coupon: <b class="ok">${a.b.coupon}%</b></div>
-        <div>YTM: <b>${a.b.ytm}%</b></div>
-        <div>Monthly: <b>${f0(a.perYear*kf(a.b.tds)/12)}</b></div>
-      </div>
-      <div class="mut">Progress (${pct}% received)</div>
-      <div class="pbar"><i style="width:${pct}%;background:${c}"></i></div>
-      <div class="row mut" style="font-size:12px;margin-top:6px">
-        <span>Earned: ${f0(e)}</span>
-        <span>Total YTM: ${f0(Y)}</span>
-      </div>
-      <div class="row" style="margin-top:12px">
-        <button class="ghost" onclick="editBondModal('${a.b.isin}')">✏️ Edit Bond</button>
-      </div>
-    </div>`
-  }).join('')+`</div>`;
+  $('#view').innerHTML=`<div class="kpi-container">
+    <div class="kpi-box"><span>Total capital invested</span><b>${f0(inv)}</b></div>
+    <div class="kpi-box"><span>Total face value</span><b>${f0(face)}</b></div>
+    <div class="kpi-box"><span>Monthly income</span><b>${f0(yr/12)}</b></div>
+    <div class="kpi-box"><span>Interest earned so far</span><b>${f0(earnedTot)}</b></div>
+    <div class="kpi-box"><span>Total interest to maturity (coupon)</span><b>${f0(grossTot)}</b><span>At YTM: ${f0(ytmTot)}</span></div>
+    <div class="kpi-box"><span>Cash back at maturity (face + coupons)</span><b style="color:var(--ok)">${f0(payout)}</b><span>${ret>=0?'+':''}${ret}% on cost</span></div>
+    <div class="kpi-box"><span>Investment horizon</span><b style="font-size:15px">${fd(minStart)} to ${fd(maxMat)}</b></div></div>${chart}<div class="card-grid">`+
+  act.map(a=>{const T=a.gross*K(a),e=a.rec*K(a),Y=a.ytmTotal*K(a),pct=T?Math.min(100,Math.round(e/T*100)):0,c=bondColor(a.b.name);
+    return `<div class="card" style="border-top:4px solid ${c}"><div class="card-header"><div><b style="font-size:16px;color:${c}">${esc(a.b.name)}</b><div class="mut">${a.b.isin}</div></div><span class="badge ${sec(a.b)?'badge-sec':'badge-unsec'}">${sec(a.b)?'Secured':'Unsecured'}</span></div>
+    <div style="margin:6px 0;display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:13px">
+    <div>Start: <b>${fd(a.start)}</b></div><div>Maturity: <b>${fd(a.mat)}</b></div>
+    <div>Crossed: <b class="ok">${((TODAY-a.start)/DAY/365.25).toFixed(1)} yrs</b></div><div>Pending: <b class="bad">${((a.mat-TODAY)/DAY/365.25).toFixed(1)} yrs</b></div>
+    <div>Invested: <b>${f0(a.cost)}</b></div><div>Units: <b>${a.u}</b></div>
+    <div>Coupon: <b class="ok">${a.b.coupon}%</b></div><div>YTM: <b>${a.b.ytm}%</b></div><div>Monthly: <b>${f0(a.perYear*K(a)/12)}</b></div></div>
+    <div class="mut">Progress (${pct}% of coupon interest received)</div><div class="pbar"><i style="width:${pct}%;background:${c}"></i></div>
+    <div class="row mut" style="font-size:12px;margin-top:6px"><span>Earned: ${f0(e)}</span><span>Total coupon: ${f0(T)}</span><span>Total at YTM: ${f0(Y)}</span></div>
+    <div class="row" style="margin-top:12px"><button class="ghost" onclick="editBondModal('${a.b.isin}')">Edit bond</button></div></div>`}).join('')+`</div>`;
 }
 
 function editBondModal(isin){
   const b=S.data.bonds.find(x=>x.isin===isin);if(!b)return;
-  const isSec=b.secured===1||b.secured===true||b.secured==='1';
   $('#sheet').hidden=false;
-  $('#sh').innerHTML=`
-    <h3>Edit Bond: ${esc(b.name)} (${b.isin})</h3>
-    <label class=mut>Bond Name</label><input id="eb_name" value="${esc(b.name)}">
-    <label class=mut>Face Value (₹)</label><input id="eb_face" type="number" value="${b.face}">
-    <label class=mut>Coupon %</label><input id="eb_coupon" type="number" step="any" value="${b.coupon}">
-    <label class=mut>YTM %</label><input id="eb_ytm" type="number" step="any" value="${b.ytm}">
-    <label class=mut>Maturity Date</label><input id="eb_mat" type="date" value="${b.maturity}">
-    <label class=mut>Payment Day (31=EOM)</label><input id="eb_pay" type="number" value="${b.payday}">
-    <label class=mut>TDS %</label><input id="eb_tds" type="number" value="${b.tds}">
-    <label class=mut>Security Type</label>
-    <select id="eb_sec"><option value="1" ${isSec?'selected':''}>Secured</option><option value="0" ${!isSec?'selected':''}>Unsecured</option></select>
-    <div class="row" style="margin-top:16px"><button class="ghost" onclick="$('#sheet').hidden=true">Cancel</button><button onclick="saveBondEdit('${b.isin}')">Save Changes</button></div>
-  `;
-}
-
+  $('#sh').innerHTML=`<h3>Edit bond: ${esc(b.name)} (${b.isin})</h3>
+  <label class=mut>Bond name</label><input id="eb_name" value="${esc(b.name)}"><label class=mut>Face value (₹)</label><input id="eb_face" type="number" value="${b.face}">
+  <label class=mut>Coupon %</label><input id="eb_coupon" type="number" step="any" value="${b.coupon}"><label class=mut>YTM %</label><input id="eb_ytm" type="number" step="any" value="${b.ytm}">
+  <label class=mut>Maturity date</label><input id="eb_mat" type="date" value="${b.maturity}"><label class=mut>Payment day (31 = month end)</label><input id="eb_pay" type="number" value="${b.payday}">
+  <label class=mut>TDS %</label><input id="eb_tds" type="number" value="${b.tds}"><label class=mut>Security type</label>
+  <select id="eb_sec"><option value="1" ${sec(b)?'selected':''}>Secured</option><option value="0" ${!sec(b)?'selected':''}>Unsecured</option></select>
+  <div class="row" style="margin-top:16px"><button class="ghost" onclick="$('#sheet').hidden=true">Cancel</button><button onclick="saveBondEdit('${b.isin}')">Save changes</button></div>`}
 async function saveBondEdit(isin){
-  const bond={
-    isin,
-    name:$('#eb_name').value.trim(),
-    face:+$('#eb_face').value,
-    coupon:+$('#eb_coupon').value,
-    ytm:+$('#eb_ytm').value,
-    maturity:$('#eb_mat').value,
-    payday:+$('#eb_pay').value,
-    tds:+$('#eb_tds').value,
-    secured:+$('#eb_sec').value
-  };
-  try{setData(await api('updateBond',{bond}));$('#sheet').hidden=true;toast('Bond updated successfully')}catch(e){toast(e.message)}
-}
+  const v=id=>$('#'+id).value,bond={isin,name:v('eb_name').trim(),face:+v('eb_face'),coupon:+v('eb_coupon'),ytm:+v('eb_ytm'),maturity:v('eb_mat'),payday:+v('eb_pay'),tds:+v('eb_tds'),secured:+v('eb_sec')};
+  try{setData(await api('updateBond',{bond}));$('#sheet').hidden=true;toast('Bond updated')}catch(e){toast(e.message)}}
 
 function vInt(){
-  const cur=mkey(0);S.mo=S.mo||cur;
-  const filteredBonds=filterBonds(S.B.A).map(a=>a.b.isin);
-  const filteredPays=S.B.pays.filter(p=>filteredBonds.includes(p.isin));
-
-  const g={};
-  filteredPays.forEach(p=>{const m=ISO(p.d).slice(0,7),x=g[m]=g[m]||{r:0,p:0,L:[]};x[p.rec?'r':'p']+=p.amt*kf(p.tds);x.L.push(p)});
-  const X=g[S.mo]||{L:[]};
-
-  const groupedByDay={};
-  X.L.forEach(p=>{
-    const dStr=ISO(p.d);
-    groupedByDay[dStr]=groupedByDay[dStr]||[];
-    groupedByDay[dStr].push(p);
-  });
-
-  const monthGross=X.L.reduce((s,p)=>s+p.amt,0);
-  const monthTds=X.L.reduce((s,p)=>s+(p.amt*p.tds/100),0);
-  const monthNet=monthGross-(S.net?monthTds:0);
-
-  $('#view').innerHTML=`
-  <div class="kpi-container">
-    <div class="kpi-box"><span>Monthly Total Payouts</span><b>${f2(monthNet)}</b></div>
-    <div class="kpi-box"><span>Gross Payout</span><b>${f2(monthGross)}</b></div>
-    <div class="kpi-box"><span>TDS Deducted</span><b>${f2(monthTds)}</b></div>
-  </div>
-  <div class="row" style="margin:16px 0"><button class="ghost" onclick="mo(-1)">‹ Previous Month</button><b>${lab(S.mo)}</b><button class="ghost" onclick="mo(1)">Next Month ›</button></div>`+
-  (Object.keys(groupedByDay).length===0?`<p class="mut">No interest payments in this month.</p>`:
-  Object.keys(groupedByDay).sort().map(d=>{
-    const list=groupedByDay[d];
-    const totalDay=list.reduce((s,p)=>s+p.amt*kf(p.tds),0);
-    return `
-    <div class="date-group">
-      <div class="date-header"><span>📅 ${fd(UTC(d))}</span><span>${f2(totalDay)}</span></div>
-      <div style="padding:10px 16px">`+
-      list.map(p=>`<div class="row" style="padding:6px 0"><span>${esc(p.name)} (${p.isin})</span><b class="${p.rec?'ok':''}">${f2(p.amt*kf(p.tds))} ${p.rec?'✓ Received':'⌛ Projected'}</b></div>`).join('')+
-      `</div></div>`
-  }).join(''));
+  S.mo=S.mo||mkey(0);
+  const keep=filterBonds(S.B.A).map(a=>a.b.isin),X=S.B.pays.filter(p=>keep.includes(p.isin)&&ISO(p.d).slice(0,7)===S.mo),byDay={};
+  X.forEach(p=>(byDay[ISO(p.d)]=byDay[ISO(p.d)]||[]).push(p));
+  const gross=X.reduce((s,p)=>s+p.amt,0),tds=X.reduce((s,p)=>s+p.amt*p.tds/100,0);
+  $('#view').innerHTML=`<div class="kpi-container"><div class="kpi-box"><span>Monthly total payouts</span><b>${f2(S.net?gross-tds:gross)}</b></div><div class="kpi-box"><span>Gross payout</span><b>${f2(gross)}</b></div><div class="kpi-box"><span>TDS deducted</span><b>${f2(tds)}</b></div></div>
+  <div class="row" style="margin:16px 0"><button class="ghost" onclick="mo(-1)">‹ Previous month</button><b>${lab(S.mo)}</b><button class="ghost" onclick="mo(1)">Next month ›</button></div>`+
+  (Object.keys(byDay).length?Object.keys(byDay).sort().map(d=>{const L=byDay[d];
+    return `<div class="date-group"><div class="date-header"><span>${fd(UTC(d))}</span><span>${f2(L.reduce((s,p)=>s+p.amt*kf(p.tds),0))}</span></div><div style="padding:10px 16px">${L.map(p=>`<div class="row" style="padding:6px 0"><span>${esc(p.name)} (${p.isin})</span><b class="${p.rec?'ok':''}">${f2(p.amt*kf(p.tds))} ${p.rec?'Received':'Projected'}</b></div>`).join('')}</div></div>`}).join(''):'<p class="mut">No interest payments in this month.</p>');
 }
-
 function mo(d){const[y,m]=S.mo.split('-').map(Number);S.mo=ISO(Date.UTC(y,m-1+d,1)).slice(0,7);draw()}
 
 function vRoadmap(){
-  const allTx=S.data.tx.filter(t=>t.type==='BUY').sort((a,b)=>a.date<b.date?-1:1);
-  if(!allTx.length){$('#view').innerHTML='<p class=mut>No transactions found.</p>';return}
-
-  const firstDate=UTC(allTx[0].date);
-  const elapsedMonths=Math.max(1,((TODAY-firstDate)/DAY/30.4375));
-  const totalInv=allTx.reduce((s,t)=>s+t.amount,0);
-  const defaultAvgMonthly=Math.round(totalInv/elapsedMonths);
-
-  if(S.customMonthlyInv===undefined) S.customMonthlyInv=defaultAvgMonthly;
-
-  const activeBonds=S.B.A.filter(a=>a.active);
-  const weightedYtm=activeBonds.reduce((s,a)=>s+a.cost*a.b.ytm,0)/(activeBonds.reduce((s,a)=>s+a.cost,0)||1);
-  const currentMonthlyIncome=activeBonds.reduce((s,a)=>s+a.perYear*kf(a.b.tds)/12,0);
-  const currentAnnualIncome=currentMonthlyIncome*12;
-
-  const goal=S.targetGoal||10000000;
-  const monthlyRate=(weightedYtm/100)/12;
-
-  const schedule=[];
-  let currCap=totalInv;
-  let monthsCount=0;
-  let now=new Date(TODAY);
-  let accumulatedInt=0;
-
-  while(currCap<goal && monthsCount<360){
-    monthsCount++;
-    now=new Date(now.setUTCMonth(now.getUTCMonth()+1));
-    const mStr=ISO(now.getTime()).slice(0,7);
-    const lump=S.lumpsums[mStr]||0;
-    const baseContrib=+S.customMonthlyInv;
-    const totalAddedThisMonth=baseContrib+lump;
-    
-    const monthlyInt=currCap*monthlyRate;
-    accumulatedInt+=monthlyInt;
-    currCap+=totalAddedThisMonth+monthlyInt;
-
-    schedule.push({
-      monthKey:mStr,
-      dateLabel:lab(mStr),
-      year:now.getUTCFullYear(),
-      contrib:baseContrib,
-      lump,
-      totalAdded:totalAddedThisMonth,
-      interest:monthlyInt,
-      accumulatedInt,
-      endBalance:currCap
-    });
-  }
-
-  const targetYear=schedule.length?schedule[schedule.length-1].year:new Date().getFullYear();
-
-  const yearlyObj={};
-  schedule.forEach(s=>{
-    if(!yearlyObj[s.year]) yearlyObj[s.year]={year:s.year,totalAdded:0,totalInt:0,endBalance:0};
-    yearlyObj[s.year].totalAdded+=s.totalAdded;
-    yearlyObj[s.year].totalInt+=s.interest;
-    yearlyObj[s.year].endBalance=s.endBalance;
-  });
-
-  $('#view').innerHTML=`
-    <div class="kpi-container">
-      <div class="kpi-box"><span>Total Capital Invested</span><b>${f0(totalInv)}</b></div>
-      <div class="kpi-box"><span>Current Monthly Received</span><b>${f0(currentMonthlyIncome)}</b></div>
-      <div class="kpi-box"><span>Current Annual Received</span><b>${f0(currentAnnualIncome)}</b></div>
-      <div class="kpi-box"><span>Historical Avg Monthly Invest</span><b>${f0(defaultAvgMonthly)}</b></div>
-      <div class="kpi-box"><span>Portfolio Weighted YTM</span><b>${weightedYtm.toFixed(2)}%</b></div>
-      <div class="kpi-box"><span>Estimated Horizon</span><b>${(monthsCount/12).toFixed(1)} Years (${targetYear})</b></div>
-    </div>
-
-    <div class="kpi-box" style="margin-top:16px">
-      <div class="row">
-        <h3>🎯 Financial Freedom & Contribution Simulator</h3>
-        <div class="row">
-          <label class="mut">Scenario: </label>
-          <select id="scenSel" onchange="switchScenario(this.value)">
-            <option value="Default">Default Strategy</option>
-            ${Object.keys(S.scenarios).map(k=>`<option value="${k}" ${S.currentScenario===k?'selected':''}>${k}</option>`).join('')}
-          </select>
-          <button class="ghost" onclick="saveScenarioPrompt()">💾 Save Scenario</button>
-        </div>
-      </div>
-      
-      <div class="row" style="gap:16px;margin-top:12px">
-        <div>
-          <label class="mut">Target Wealth Goal (₹):</label>
-          <input type="number" id="goalInput" value="${goal}" onchange="S.targetGoal=+this.value;draw()">
-        </div>
-        <div>
-          <label class="mut">Monthly Investment From Next Month (₹):</label>
-          <input type="number" id="monthlyContribInput" value="${S.customMonthlyInv}" onchange="S.customMonthlyInv=+this.value;draw()" placeholder="Press Enter / Blur to update">
-        </div>
-      </div>
-      <p class="mut" style="margin-top:14px">
-        Investing <b>${f0(S.customMonthlyInv)}/month</b> starting next month at <b>${weightedYtm.toFixed(2)}%</b> YTM will achieve your goal of <b>${f0(goal)}</b> in <b>${monthsCount} months</b> (~${(monthsCount/12).toFixed(1)} Years, around ${targetYear}).
-      </p>
-    </div>
-
-    <div class="kpi-box" style="margin-top:16px">
-      <div class="row">
-        <h4>Future Projections & Capital Accumulation Table</h4>
-        <div class="seg">
-          <button class="${S.roadmapMode==='monthly'?'on':''}" onclick="S.roadmapMode='monthly';draw()">Monthly View</button>
-          <button class="${S.roadmapMode==='yearly'?'on':''}" onclick="S.roadmapMode='yearly';draw()">Yearly Summary</button>
-        </div>
-      </div>
-
-      <table style="margin-top:12px">
-        <thead>
-          <tr>
-            <th>${S.roadmapMode==='monthly'?'Month':'Year'}</th>
-            <th>Monthly / Capital Added</th>
-            <th>Lump-Sum Bonus</th>
-            <th>Interest Earned</th>
-            <th>Total Portfolio Value</th>
-            ${S.roadmapMode==='monthly'?'<th>Action</th>':''}
-          </tr>
-        </thead>
-        <tbody>`+
-        (S.roadmapMode==='monthly'?
-          schedule.map(s=>`<tr>
-            <td>${s.dateLabel}</td>
-            <td>${f0(s.contrib)}</td>
-            <td class="${s.lump?'ok':''}">${s.lump?f0(s.lump):'-'}</td>
-            <td class="ok">${f0(s.interest)}</td>
-            <td><b>${f0(s.endBalance)}</b></td>
-            <td><button class="ghost" style="padding:2px 8px;font-size:11px" onclick="editLumpSum('${s.monthKey}',${s.lump})">Edit Bonus</button></td>
-          </tr>`).join('')
-          :
-          Object.values(yearlyObj).map(y=>`<tr>
-            <td><b>${y.year}</b></td>
-            <td>${f0(y.totalAdded)}</td>
-            <td>-</td>
-            <td class="ok">${f0(y.totalInt)}</td>
-            <td><b>${f0(y.endBalance)}</b></td>
-          </tr>`).join('')
-        )+`</tbody></table></div>`;
+  const buys=S.data.tx.filter(t=>t.type==='BUY').sort((a,b)=>a.date<b.date?-1:1);
+  if(!buys.length){$('#view').innerHTML='<p class=mut>No transactions found.</p>';return}
+  const elapsed=Math.max(1,(TODAY-UTC(buys[0].date))/DAY/30.4375),totalInv=buys.reduce((s,t)=>s+t.amount,0),avgMonthly=Math.round(totalInv/elapsed);
+  if(S.customMonthlyInv===undefined)S.customMonthlyInv=avgMonthly;
+  const act=S.B.A.filter(a=>a.active),wy=act.reduce((s,a)=>s+a.cost*a.b.ytm,0)/(act.reduce((s,a)=>s+a.cost,0)||1),mInc=act.reduce((s,a)=>s+a.perYear*kf(a.b.tds)/12,0);
+  const goal=S.targetGoal||1e7,rate=wy/100/12,sched=[];let cap=totalInv,n=0,now=new Date(TODAY);now.setUTCDate(1);
+  while(cap<goal&&n<360){n++;now.setUTCMonth(now.getUTCMonth()+1);const mk=ISO(now.getTime()).slice(0,7),lump=S.lumpsums[mk]||0,add=+S.customMonthlyInv+lump,int=cap*rate;cap+=add+int;
+    sched.push({mk,year:now.getUTCFullYear(),contrib:+S.customMonthlyInv,lump,add,int,end:cap})}
+  const ty=sched.length?sched[sched.length-1].year:new Date().getFullYear(),Y={};
+  sched.forEach(s=>{const y=Y[s.year]=Y[s.year]||{year:s.year,add:0,int:0,end:0};y.add+=s.add;y.int+=s.int;y.end=s.end});
+  $('#view').innerHTML=`<div class="kpi-container"><div class="kpi-box"><span>Total capital invested</span><b>${f0(totalInv)}</b></div><div class="kpi-box"><span>Current monthly received</span><b>${f0(mInc)}</b></div><div class="kpi-box"><span>Current annual received</span><b>${f0(mInc*12)}</b></div>
+  <div class="kpi-box"><span>Historical avg monthly invest</span><b>${f0(avgMonthly)}</b></div><div class="kpi-box"><span>Portfolio weighted YTM</span><b>${wy.toFixed(2)}%</b></div><div class="kpi-box"><span>Estimated horizon</span><b>${(n/12).toFixed(1)} years (${ty})</b></div></div>
+  <div class="kpi-box" style="margin-top:16px"><div class="row"><h3>Financial freedom and contribution simulator</h3><div class="row"><label class="mut">Scenario:</label>
+  <select onchange="switchScenario(this.value)"><option value="Default">Default strategy</option>${Object.keys(S.scenarios).map(k=>`<option value="${esc(k)}" ${S.currentScenario===k?'selected':''}>${esc(k)}</option>`).join('')}</select><button class="ghost" onclick="saveScenarioPrompt()">Save scenario</button></div></div>
+  <div class="row" style="gap:16px;margin-top:12px"><div><label class="mut">Target wealth goal (₹)</label><br><input type="number" value="${goal}" onchange="S.targetGoal=+this.value;draw()"></div>
+  <div><label class="mut">Monthly investment from next month (₹)</label><br><input type="number" value="${S.customMonthlyInv}" onchange="S.customMonthlyInv=+this.value;draw()"></div></div>
+  <p class="mut" style="margin-top:14px">Investing <b>${f0(S.customMonthlyInv)}/month</b> from next month at <b>${wy.toFixed(2)}%</b> reaches <b>${f0(goal)}</b> in <b>${n} months</b> (about ${(n/12).toFixed(1)} years, around ${ty}). Interest is assumed reinvested at the same rate.</p></div>
+  <div class="kpi-box" style="margin-top:16px"><div class="row"><h4>Future projection table</h4>${seg([['monthly','Monthly'],['yearly','Yearly']],S.roadmapMode,'S.roadmapMode=')}</div>
+  <table style="margin-top:12px"><thead><tr><th>${S.roadmapMode==='monthly'?'Month':'Year'}</th><th>Capital added</th><th>Lump sum</th><th>Interest</th><th>Portfolio value</th>${S.roadmapMode==='monthly'?'<th></th>':''}</tr></thead><tbody>`+
+  (S.roadmapMode==='monthly'?sched.map(s=>`<tr><td>${lab(s.mk)}</td><td>${f0(s.contrib)}</td><td class="${s.lump?'ok':''}">${s.lump?f0(s.lump):'-'}</td><td class="ok">${f0(s.int)}</td><td><b>${f0(s.end)}</b></td><td><button class="ghost" style="padding:2px 8px;font-size:11px" onclick="editLump('${s.mk}',${s.lump})">Edit bonus</button></td></tr>`).join('')
+  :Object.values(Y).map(y=>`<tr><td><b>${y.year}</b></td><td>${f0(y.add)}</td><td>-</td><td class="ok">${f0(y.int)}</td><td><b>${f0(y.end)}</b></td></tr>`).join(''))+`</tbody></table></div>`;
 }
-
-function editLumpSum(mKey,current){
-  const val=prompt(`Enter one-off lump-sum investment / bonus for ${lab(mKey)} (₹):`,current||0);
-  if(val!==null){
-    S.lumpsums[mKey]=+val||0;
-    draw();
-  }
-}
-
-function saveScenarioPrompt(){
-  const name=prompt('Enter a name for this investment scenario:');
-  if(name){
-    S.scenarios[name]={
-      targetGoal:S.targetGoal,
-      customMonthlyInv:S.customMonthlyInv,
-      lumpsums:JSON.parse(JSON.stringify(S.lumpsums))
-    };
-    S.currentScenario=name;
-    localStorage.setItem('fb',JSON.stringify(S));
-    toast('Scenario saved!');
-    draw();
-  }
-}
-
-function switchScenario(name){
-  if(name==='Default'){
-    S.currentScenario='Default';
-    S.lumpsums={};
-  }else if(S.scenarios[name]){
-    S.currentScenario=name;
-    S.targetGoal=S.scenarios[name].targetGoal;
-    S.customMonthlyInv=S.scenarios[name].customMonthlyInv;
-    S.lumpsums=JSON.parse(JSON.stringify(S.scenarios[name].lumpsums));
-  }
-  draw();
-}
+function editLump(mk,cur){const v=prompt(`One-off lump-sum investment for ${lab(mk)} (₹):`,cur||0);if(v!==null){S.lumpsums[mk]=+v||0;draw()}}
+const saveSc=()=>{try{localStorage.setItem('fsc',JSON.stringify({scenarios:S.scenarios}))}catch(e){}};
+function saveScenarioPrompt(){const name=prompt('Name for this scenario:');if(!name)return;S.scenarios[name]={targetGoal:S.targetGoal,customMonthlyInv:S.customMonthlyInv,lumpsums:JSON.parse(JSON.stringify(S.lumpsums))};S.currentScenario=name;saveSc();toast('Scenario saved');draw()}
+function switchScenario(name){S.currentScenario=name;if(name==='Default')S.lumpsums={};else if(S.scenarios[name]){const c=S.scenarios[name];S.targetGoal=c.targetGoal;S.customMonthlyInv=c.customMonthlyInv;S.lumpsums=JSON.parse(JSON.stringify(c.lumpsums))}draw()}
 
 function vTx(){
-  $('#view').innerHTML=`<div class="row" style="margin:12px 0"><button onclick="openBuy()">Add / Buy Bond</button></div>`+
-  [...S.data.tx].sort((a,b)=>a.date<b.date?1:-1).map(t=>{
-    const b=S.data.bonds.find(x=>x.isin===t.isin)||{name:t.isin};
-    return `<div class="card" style="margin-bottom:8px"><div class="row"><b>${esc(b.name)}</b><span>${f0(t.amount)}</span></div><div class="row mut"><span>${fd(UTC(t.date))} · ${t.type} ${t.units} units</span><button class="ghost" onclick="delTx('${t.id}')">Delete</button></div></div>`
-  }).join('')
+  const rl={};S.B.A.forEach(a=>Object.assign(rl,a.rl));
+  $('#view').innerHTML=`<div class="row" style="margin:12px 0;justify-content:flex-start"><button onclick="openBuy()">Add / buy bond</button><button class="ghost" onclick="openSell()">Sell bond</button></div>`+
+  [...S.data.tx].sort((a,b)=>a.date<b.date?1:-1).map(t=>{const b=S.data.bonds.find(x=>x.isin===t.isin)||{name:t.isin};
+    return `<div class="card" style="margin-bottom:8px"><div class="row"><b>${esc(b.name)}</b><span>${f0(t.amount)}</span></div><div class="row mut"><span>${fd(UTC(t.date))} · ${t.type} ${t.units} units${t.note?' · '+esc(t.note):''}</span><button class="ghost" onclick="delTx('${t.id}')">Delete</button></div>${t.type==='SELL'?`<div class="${(rl[t.id]||0)<0?'bad':'ok'}">Realized ${f0(rl[t.id]||0)}</div>`:''}</div>`}).join('');
 }
+function openBuy(){$('#sheet').hidden=false;
+  $('#sh').innerHTML=`<h3>Add / buy bond</h3><select id=bs onchange="$('#nb').hidden=this.value!=='new'"><option value=new>New bond…</option>${S.data.bonds.map(b=>`<option value="${b.isin}">${esc(b.name)} (${b.isin})</option>`).join('')}</select>
+  <div id=nb><input id=ni placeholder="ISIN (12 characters)"><input id=nn placeholder="Bond name"><input id=nf type=number placeholder="Face value per unit"><input id=nc type=number step=any placeholder="Coupon %"><input id=ny type=number step=any placeholder="YTM %">
+  <label class=mut>Maturity date</label><input id=nm type=date><input id=np type=number placeholder="Payment day (31 = month end)"><input id=nt type=number value=10 placeholder="TDS %"><select id=nsec><option value="1">Secured</option><option value="0">Unsecured</option></select></div>
+  <label class=mut>Deal date</label><input id=bd type=date value="${ISO(TODAY)}"><input id=bu type=number step=any placeholder="Units"><input id=ba type=number step=any placeholder="Total amount paid (₹)"><input id=bn placeholder="Note (optional)">
+  <div class="row" style="margin-top:16px"><button class="ghost" onclick="$('#sheet').hidden=true">Cancel</button><button id=go onclick="saveBuy()">Save position</button></div>`}
+async function saveBuy(){const v=id=>$('#'+id).value.trim(),nw=v('bs')==='new',isn=nw?v('ni').toUpperCase():v('bs');
+  const bond=nw?{isin:isn,name:v('nn'),face:+v('nf'),coupon:+v('nc'),ytm:+v('ny'),maturity:v('nm'),payday:+v('np'),tds:+v('nt'),secured:+v('nsec')}:null;
+  $('#go').disabled=true;try{setData(await api('addTx',{bond,tx:{date:v('bd'),isin:isn,type:'BUY',units:+v('bu'),amount:+v('ba'),note:v('bn')}}));$('#sheet').hidden=true;toast('Saved')}catch(e){toast(e.message);$('#go').disabled=false}}
+function openSell(){const H=S.B.A.filter(a=>a.u>0);$('#sheet').hidden=false;
+  $('#sh').innerHTML=`<h3>Sell bond</h3><select id=ss onchange=sg()>${H.map(a=>`<option value="${a.b.isin}">${esc(a.b.name)} (${a.b.isin}) · ${a.u} units</option>`).join('')}</select>
+  <label class=mut>Sale date</label><input id=sd type=date value="${ISO(TODAY)}"><input id=su type=number step=any placeholder="Units sold" oninput=sg()><input id=sa type=number step=any placeholder="Total sale proceeds (₹)" oninput=sg()><input id=sn placeholder="Note (optional)">
+  <div id=sgh class=mut style="min-height:20px"></div><div class="row" style="margin-top:16px"><button class="ghost" onclick="$('#sheet').hidden=true">Cancel</button><button id=go onclick="saveSell()">Record sale</button></div>`}
+function sg(){const a=S.B.A.find(x=>x.b.isin===$('#ss').value),u=+$('#su').value||0,p=+$('#sa').value||0;$('#sgh').textContent=a&&u?`Average cost ${f0(a.cost/a.u)} per unit. Realized ${f0(p-a.cost/a.u*u)}`:''}
+async function saveSell(){const v=id=>$('#'+id).value.trim();$('#go').disabled=true;
+  try{setData(await api('addTx',{tx:{date:v('sd'),isin:v('ss'),type:'SELL',units:+v('su'),amount:+v('sa'),note:v('sn')}}));$('#sheet').hidden=true;toast('Sale recorded')}catch(e){toast(e.message);$('#go').disabled=false}}
+async function delTx(id){if(!confirm('Delete this transaction?'))return;try{setData(await api('delTx',{id}))}catch(e){toast(e.message)}}
 
-function openBuy(){
-  $('#sheet').hidden=false;
-  $('#sh').innerHTML=`
-    <h3>Add / Buy Bond</h3>
-    <select id=bs onchange="$('#nb').hidden=this.value!=='new'"><option value=new>New bond…</option>${S.data.bonds.map(b=>`<option value="${b.isin}">${esc(b.name)} (${b.isin})</option>`).join('')}</select>
-    <div id=nb>
-      <input id=ni placeholder="ISIN (12 chars)"><input id=nn placeholder="Bond Name">
-      <input id=nf type=number placeholder="Face Value"><input id=nc type=number step=any placeholder="Coupon %">
-      <input id=ny type=number step=any placeholder="YTM %"><input id=nm type=date>
-      <input id=np type=number placeholder="Payment Day (31=EOM)"><input id=nt type=number value=10 placeholder="TDS %">
-      <select id=nsec><option value="1">Secured</option><option value="0">Unsecured</option></select>
-    </div>
-    <input id=bd type=date value="${ISO(TODAY)}"><input id=bu type=number placeholder="Units"><input id=ba type=number placeholder="Total Amount Paid">
-    <div class="row" style="margin-top:16px"><button class="ghost" onclick="$('#sheet').hidden=true">Cancel</button><button onclick="saveBuy()">Save Position</button></div>
-  `;
-}
-
-async function saveBuy(){
-  const v=id=>$('#'+id).value.trim(),nw=v('bs')==='new',isn=nw?v('ni').toUpperCase():v('bs');
-  const bond=nw?{isin:isn,name:v('nn'),face:+v('nf'),coupon:+v('nc'),ytm:+v('ny'),maturity:v('nm'),payday:+v('np'),tds:+v('nt'),secured:+$('#nsec').value}:null;
-  try{setData(await api('addTx',{bond,tx:{date:v('bd'),isin:isn,type:'BUY',units:+v('bu'),amount:+v('ba')}}));$('#sheet').hidden=true;toast('Saved')}catch(e){toast(e.message)}
-}
-
-async function delTx(id){if(confirm('Delete transaction?'))setData(await api('delTx',{id}))}
-
-if(S.token){ load(); }else{ $('#login').hidden=false; $('#app').hidden=true; }
+draw();if(S.token)load();
 </script></body></html>
