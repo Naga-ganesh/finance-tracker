@@ -92,11 +92,14 @@ let TODAY=(()=>{const d=new Date(Date.now()+19800000);return Date.UTC(d.getUTCFu
 const PALETTE=['#58c9a6','#52be80','#f4d03f','#e59866','#af7ac5','#5499c7','#48c9b0','#f1948a','#a569bd','#45b39d','#f5b041','#5d6d7e','#a3e4d7','#f9e79f','#d7bde2','#f8c471'];
 
 function getBondColor(fullName){
-  // Strip out brackets, dates, years, and suffixes like Ltd/Financiers to get the core issuer name
   let baseName = fullName.replace(/\s*\(.*?\)/g, '').replace(/\b(Ltd|Limited|Financiers|Finance)\b/gi, '').trim().toLowerCase();
   let hash = 0;
   for(let i = 0; i < baseName.length; i++){ hash = baseName.charCodeAt(i) + ((hash << 5) - hash); }
   return PALETTE[Math.abs(hash) % PALETTE.length];
+}
+
+function getBaseIssuerQuery(fullName){
+  return fullName.replace(/\s*\(.*?\)/g, '').replace(/\b(Ltd|Limited|Financiers|Finance)\b/gi, '').trim().toLowerCase();
 }
 
 function analyse(b,txs){
@@ -248,13 +251,14 @@ function vOver(){
   if(S.chartType==='bar'){
     const maxVal=Math.max(1,...act.map(a=>a.gross*kf(a.b.tds)));
     chartHtml=`<div class="chart-container">
-      <h4>Portfolio Payout Distribution (Click bar to filter bond)</h4>
+      <h4>Portfolio Payout Distribution (Click bar to filter issuer)</h4>
       <div style="display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:20px;overflow-x:auto">
         ${act.map(a=>{
           const val=a.gross*kf(a.b.tds);
           const h=Math.round((val/maxVal)*110);
           const c=getBondColor(a.b.name);
-          return `<div class="chart-bar" onclick="S.q='isin:${a.b.isin}';$('#q').value='isin:${a.b.isin}';draw()" style="flex:1;min-width:36px;display:flex;flex-direction:column;align-items:center">
+          const issuerQuery=getBaseIssuerQuery(a.b.name);
+          return `<div class="chart-bar" onclick="S.q='${issuerQuery}';$('#q').value='${issuerQuery}';draw()" style="flex:1;min-width:36px;display:flex;flex-direction:column;align-items:center">
             <div style="height:${h}px;width:100%;background:${c};border-radius:4px 4px 0 0" title="Click to filter: ${a.b.name}"></div>
             <span class="mut" style="font-size:9px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.b.isin.slice(-4)}</span>
           </div>`
@@ -265,7 +269,7 @@ function vOver(){
     const totalV=act.reduce((s,a)=>s+a.cost,0)||1;
     let accum=0;
     chartHtml=`<div class="chart-container">
-      <h4>Capital Invested Share (Click slice to filter bond)</h4>
+      <h4>Capital Invested Share (Click slice to filter issuer)</h4>
       <svg viewBox="0 0 42 42" width="160" height="160" style="margin:10px auto;display:block">
         <circle cx="21" cy="21" r="15.9155" fill="none" stroke="var(--rule)" stroke-width="7"/>
         ${act.map(a=>{
@@ -274,7 +278,8 @@ function vOver(){
           const offset=25-accum;
           accum+=pct;
           const c=getBondColor(a.b.name);
-          return `<circle class="donut-slice" onclick="S.q='isin:${a.b.isin}';$('#q').value='isin:${a.b.isin}';draw()" cx="21" cy="21" r="15.9155" fill="none" stroke="${c}" stroke-width="7" stroke-dasharray="${dash}" stroke-dashoffset="${offset}"><title>Click to filter: ${a.b.name}</title></circle>`;
+          const issuerQuery=getBaseIssuerQuery(a.b.name);
+          return `<circle class="donut-slice" onclick="S.q='${issuerQuery}';$('#q').value='${issuerQuery}';draw()" cx="21" cy="21" r="15.9155" fill="none" stroke="${c}" stroke-width="7" stroke-dasharray="${dash}" stroke-dashoffset="${offset}"><title>Click to filter: ${a.b.name}</title></circle>`;
         }).join('')}
         <text x="21" y="22" text-anchor="middle" font-size="4" font-weight="700" fill="var(--tx)">${f0(totalV)}</text>
       </svg>
