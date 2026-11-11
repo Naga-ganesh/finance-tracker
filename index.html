@@ -39,6 +39,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{font-weight:600;colo
 .date-group{background:var(--panel);border:1px solid var(--rule);border-radius:10px;margin-bottom:12px;overflow:hidden}
 .date-header{background:var(--ink-light);padding:10px 16px;font-weight:700;color:var(--ink);display:flex;justify-content:space-between}
 .chart-container{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:20px;margin:16px 0;text-align:center}
+.clickable-row{cursor:pointer}.clickable-row:hover{background:var(--ink-light)}
 .chart-bar{cursor:pointer;transition:opacity .15s}.chart-bar:hover{opacity:0.85}
 .donut-slice{cursor:pointer;transition:transform .15s}.donut-slice:hover{opacity:0.85}
 </style></head><body><main>
@@ -88,11 +89,14 @@ const f0=n=>'₹'+Math.round(n||0).toLocaleString('en-IN'),f2=n=>'₹'+(n||0).to
 const DAY=864e5,UTC=s=>{const[a,b,c]=s.split('-').map(Number);return Date.UTC(a,b-1,c)},ISO=t=>new Date(t).toISOString().slice(0,10),eom=(y,m)=>new Date(Date.UTC(y,m+1,0)).getUTCDate();
 let TODAY=(()=>{const d=new Date(Date.now()+19800000);return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())})();
 
-const PALETTE=['#58c9a6','#52be80','#f4d03f','#e59866','#af7ac5','#5499c7','#48c9b0','#f1948a','#a569bd','#45b39d','#f5b041','#5d6d7e'];
-function getBondColor(name){
-  let hash=0;
-  for(let i=0;i<name.length;i++){ hash = name.charCodeAt(i)+((hash<<5)-hash); }
-  return PALETTE[Math.abs(hash)%PALETTE.length];
+const PALETTE=['#58c9a6','#52be80','#f4d03f','#e59866','#af7ac5','#5499c7','#48c9b0','#f1948a','#a569bd','#45b39d','#f5b041','#5d6d7e','#a3e4d7','#f9e79f','#d7bde2','#f8c471'];
+
+function getBondColor(fullName){
+  // Strip out brackets, dates, years, and suffixes like Ltd/Financiers to get the core issuer name
+  let baseName = fullName.replace(/\s*\(.*?\)/g, '').replace(/\b(Ltd|Limited|Financiers|Finance)\b/gi, '').trim().toLowerCase();
+  let hash = 0;
+  for(let i = 0; i < baseName.length; i++){ hash = baseName.charCodeAt(i) + ((hash << 5) - hash); }
+  return PALETTE[Math.abs(hash) % PALETTE.length];
 }
 
 function analyse(b,txs){
