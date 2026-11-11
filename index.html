@@ -110,20 +110,122 @@ let S=Object.assign({tab:'over',net:false,sort:'inv_desc',chartType:'bar',q:'',t
 try{S.data=JSON.parse(localStorage.getItem('fbd'))}catch(e){}
 
 async function api(action,d={}){let j;
-  try{const r=await fetch(API,{method:'POST',body:JSON.stringify({action,token:S.token,...d})});j=await r.json()}catch(e){throw new Error('Network error. Check connection.')}
+  try{
+    const r=await fetch(API,{method:'POST',body:JSON.stringify({action,token:S.token,...d})});
+    j=await r.json();
+  }catch(e){
+    console.error(e);
+    throw new Error('Network / CORS error connecting to Apps Script. Check browser console.');
+  }
   if(j.error==='AUTH'){logout();throw new Error('Session expired.')}
-  if(j.error)throw new Error(j.error);return j}
+  if(j.error)throw new Error(j.error);return j;
+}
 
 function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2400)}
 function setData(j){S.data={bonds:j.bonds,tx:j.tx};try{localStorage.setItem('fbd',JSON.stringify(S.data))}catch(e){}draw()}
-async function load(){try{setData(await api('data'))}catch(e){toast(e.message)}}
-async function login(){$('#err').textContent='';try{const j=await api('login',{username:$('#u').value,passphrase:$('#p').value});S.token=j.token;S.user=j.user;localStorage.setItem('fb',JSON.stringify({token:S.token,user:S.user}));setData(j)}catch(e){$('#err').textContent=e.message}}
-function logout(){localStorage.removeItem('fb');localStorage.removeItem('fbd');S={tab:'over',net:false,sort:'inv_desc',chartType:'bar',q:''};draw()}
+async function load(){
+  try{
+    const res = await api('data');
+    setData(res);
+  }catch(e){
+    toast(e.message);
+    if(!S.token) {
+      $('#login').hidden=false;
+      $('#app').hidden=true;
+    }
+  }
+}
+
+async function login(){
+  $('#err').textContent='';
+  try{
+    const j=await api('login',{username:$('#u').value,passphrase:$('#p').value});
+    S.token=j.token;
+    S.user=j.user;
+    localStorage.setItem('fb',JSON.stringify({token:S.token,user:S.user}));
+    setData(j);
+  }catch(e){
+    $('#err').textContent=e.message;
+  }
+}
+
+function logout(){
+  localStorage.removeItem('fb');
+  localStorage.removeItem('fbd');
+  S={tab:'over',net:false,sort:'inv_desc',chartType:'bar',q:''};
+  draw();
+}
 
 function draw(){
-  if(!S.token){$('#login').hidden=false;$('#app').hidden=true;return}
-  $('#login').hidden=true;$('#app').hidden=false;
-  $('#tabs').innerHTML=[['over','Bonds Dashboard'],['int','Interest Calendar'],['reconcile','Bank Reconcile (NEFT)'],['roadmap','Roadmap & Predictions'],['tx','Trades Log']].map(([k,t])=>`<button class="${S.tab===k?'on':''}" onclick="S.tab='${k}';draw()">${t}</button>`).join(''); if(!S.data){$('#view').innerHTML='<p class=mut>Loading bond engine…</p>';return} S.B=build(S.data); ({over:vOver,int:vInt,reconcile:vReconcile,roadmap:vRoadmap,tx:vTx})[S.tab]()}  const kf=t=>S.net?1-t/100:1; const fc=n=>n>=1e7?'₹'+(n/1e7).toFixed(2)+' Cr':n>=1e5?'₹'+(n/1e5).toFixed(2)+' L':f0(n);  function filterBonds(A){ const rawQ=S.q.trim().toLowerCase(); if(!rawQ)return A;  return A.filter(a=>{ // AWS-style property parsing: maturity:2028, secured:yes, coupon>10, isin:INE342 if(rawQ.includes(':') \vert{}\vert{} rawQ.includes('>')){ const parts=rawQ.split(/\s+/); let match=true; parts.forEach(p=>{ if(p.startsWith('maturity:')){ const yr=p.split(':')[1]; if(!new Date(a.mat).toISOString().startsWith(yr))match=false; }else if(p.startsWith('secured:')){ const val=p.split(':')[1]; const isSec=a.b.secured===1\vert{}\vert{}a.b.secured===true\vert{}\vert{}a.b.secured==='1'; if(val==='yes'\vert{}\vert{}val==='true'){if(!isSec)match=false;} else{if(isSec)match=false;} }else if(p.startsWith('coupon>')){ const minC=parseFloat(p.split('>')[1]); if(!(a.b.coupon>minC))match=false; }else if(p.startsWith('isin:')){ const sub=p.split(':')[1]; if(!a.b.isin.toLowerCase().includes(sub))match=false; }else{ const term=p; if(!a.b.name.toLowerCase().includes(term)&&!a.b.isin.toLowerCase().includes(term))match=false; } }); return match; } return a.b.name.toLowerCase().includes(rawQ)\vert{}\vert{}a.b.isin.toLowerCase().includes(rawQ); }); }  function sortBonds(A){ const list=[...A]; if(S.sort==='inv_desc')list.sort((a,b)=>b.cost-a.cost); if(S.sort==='inc_desc')list.sort((a,b)=>b.perYear-a.perYear); if(S.sort==='mat_asc')list.sort((a,b)=>a.mat-b.mat); if(S.sort==='mat_desc')list.sort((a,b)=>b.mat-a.mat); if(S.sort==='sec_desc')list.sort((a,b)=>(b.b.secured\vert{}\vert{}0)-(a.b.secured\vert{}\vert{}0)); return list; }  function vOver(){ let act=filterBonds(S.B.A.filter(a=>a.active)); act=sortBonds(act); $('#match-count').textContent=`(${act.length} bonds matching)`;
+  if(!S.token){
+    $('#login').hidden=false;
+    $('#app').hidden=true;
+    return;
+  }
+  $('#login').hidden=true;
+  $('#app').hidden=false;
+  
+  $('#tabs').innerHTML=[['over','Bonds Dashboard'],['int','Interest Calendar'],['reconcile','Bank Reconcile (NEFT)'],['roadmap','Roadmap & Predictions'],['tx','Trades Log']].map(([k,t])=>`<button class="${S.tab===k?'on':''}" onclick="S.tab='${k}';draw()">${t}</button>`).join('');
+  
+  if(!S.data){
+    $('#view').innerHTML='<p class="mut" style="padding:40px;text-align:center">Loading bond engine…</p>';
+    return;
+  }
+  S.B=build(S.data);
+  ({over:vOver,int:vInt,reconcile:vReconcile,roadmap:vRoadmap,tx:vTx})[S.tab]();
+}
+
+const kf=t=>S.net?1-t/100:1;
+const fc=n=>n>=1e7?'₹'+(n/1e7).toFixed(2)+' Cr':n>=1e5?'₹'+(n/1e5).toFixed(2)+' L':f0(n);
+
+function filterBonds(A){
+  const rawQ=S.q.trim().toLowerCase();
+  if(!rawQ)return A;
+
+  return A.filter(a=>{
+    if(rawQ.includes(':') || rawQ.includes('>')){
+      const parts=rawQ.split(/\s+/);
+      let match=true;
+      parts.forEach(p=>{
+        if(p.startsWith('maturity:')){
+          const yr=p.split(':')[1];
+          if(!new Date(a.mat).toISOString().startsWith(yr))match=false;
+        }else if(p.startsWith('secured:')){
+          const val=p.split(':')[1];
+          const isSec=a.b.secured===1||a.b.secured===true||a.b.secured==='1';
+          if(val==='yes'||val==='true'){if(!isSec)match=false;}
+          else{if(isSec)match=false;}
+        }else if(p.startsWith('coupon>')){
+          const minC=parseFloat(p.split('>')[1]);
+          if(!(a.b.coupon>minC))match=false;
+        }else if(p.startsWith('isin:')){
+          const sub=p.split(':')[1];
+          if(!a.b.isin.toLowerCase().includes(sub))match=false;
+        }else{
+          const term=p;
+          if(!a.b.name.toLowerCase().includes(term)&&!a.b.isin.toLowerCase().includes(term))match=false;
+        }
+      });
+      return match;
+    }
+    return a.b.name.toLowerCase().includes(rawQ)||a.b.isin.toLowerCase().includes(rawQ);
+  });
+}
+
+function sortBonds(A){
+  const list=[...A];
+  if(S.sort==='inv_desc')list.sort((a,b)=>b.cost-a.cost);
+  if(S.sort==='inc_desc')list.sort((a,b)=>b.perYear-a.perYear);
+  if(S.sort==='mat_asc')list.sort((a,b)=>a.mat-b.mat);
+  if(S.sort==='mat_desc')list.sort((a,b)=>b.mat-a.mat);
+  if(S.sort==='sec_desc')list.sort((a,b)=>(b.b.secured||0)-(a.b.secured||0));
+  return list;
+}
+
+function vOver(){
+  let act=filterBonds(S.B.A.filter(a=>a.active));
+  act=sortBonds(act);
+  $('#match-count').textContent=`(${act.length} bonds matching)`;
 
   const inv=act.reduce((s,a)=>s+a.cost,0);
   const face=act.reduce((s,a)=>s+a.u*a.b.face,0);
@@ -176,7 +278,7 @@ function draw(){
     <div class="kpi-box"><span>Total Face Value</span><b>${f0(face)}</b></div>
     <div class="kpi-box"><span>Monthly Income</span><b>${f0(yr/12)}</b></div>
     <div class="kpi-box"><span>Total Earnings + YTM</span><b>${f0(grossTot)} <small style="font-size:13px;color:var(--ok)">(+${absReturnPct}%)</small></b></div>
-    <div class="kpi-box"><span>Investment Horizon</span><b style="font-size:15px">${fd(minStart)} ➔${fd(maxMat)}</b></div>
+    <div class="kpi-box"><span>Investment Horizon</span><b style="font-size:15px">${fd(minStart)} ➔ ${fd(maxMat)}</b></div>
   </div>
 
   ${chartHtml}
@@ -187,7 +289,6 @@ function draw(){
     const pct=T?Math.min(100,Math.round(e/T*100)):0;
     const isSec=a.b.secured===1||a.b.secured===true||a.b.secured==='1';
     
-    // Years crossed & pending calculations
     const yrsCrossed=((TODAY-a.start)/DAY/365.25).toFixed(1);
     const yrsPending=((a.mat-TODAY)/DAY/365.25).toFixed(1);
 
@@ -293,7 +394,7 @@ function vInt(){
     <div class="date-group">
       <div class="date-header"><span>📅 ${fd(UTC(d))}</span><span>${f2(totalDay)}</span></div>
       <div style="padding:10px 16px">`+
-      list.map(p=>`<div class="row" style="padding:6px 0"><span>${esc(p.name)} (${p.isin})</span><b class="${p.rec?'ok':''}">${f2(p.amt*kf(p.tds))}${p.rec?'✓ Received':'⌛ Projected'}</b></div>`).join('')+
+      list.map(p=>`<div class="row" style="padding:6px 0"><span>${esc(p.name)} (${p.isin})</span><b class="${p.rec?'ok':''}">${f2(p.amt*kf(p.tds))} ${p.rec?'✓ Received':'⌛ Projected'}</b></div>`).join('')+
       `</div></div>`
   }).join(''));
 }
@@ -384,7 +485,7 @@ function vRoadmap(){
         </div>
       </div>
       <p class="mut" style="margin-top:14px">
-        Investing <b>${f0(monthlyContrib)}/month</b> starting next month at <b>${weightedYtm.toFixed(2)}%</b> YTM will achieve your goal of <b>${f0(goal)}</b> in <b>${monthsToGoal} months</b> (~${(monthsToGoal/12).toFixed(1)} Years, around${targetYear}).
+        Investing <b>${f0(monthlyContrib)}/month</b> starting next month at <b>${weightedYtm.toFixed(2)}%</b> YTM will achieve your goal of <b>${f0(goal)}</b> in <b>${monthsToGoal} months</b> (~${(monthsToGoal/12).toFixed(1)} Years, around ${targetYear}).
       </p>
     </div>
   `;
@@ -394,7 +495,7 @@ function vTx(){
   $('#view').innerHTML=`<div class="row" style="margin:12px 0"><button onclick="openBuy()">Add / Buy Bond</button></div>`+
   [...S.data.tx].sort((a,b)=>a.date<b.date?1:-1).map(t=>{
     const b=S.data.bonds.find(x=>x.isin===t.isin)||{name:t.isin};
-    return `<div class="card" style="margin-bottom:8px"><div class="row"><b>${esc(b.name)}</b><span>${f0(t.amount)}</span></div><div class="row mut"><span>${fd(UTC(t.date))} · ${t.type}${t.units} units</span><button class="ghost" onclick="delTx('${t.id}')">Delete</button></div></div>`
+    return `<div class="card" style="margin-bottom:8px"><div class="row"><b>${esc(b.name)}</b><span>${f0(t.amount)}</span></div><div class="row mut"><span>${fd(UTC(t.date))} · ${t.type} ${t.units} units</span><button class="ghost" onclick="delTx('${t.id}')">Delete</button></div></div>`
   }).join('')
 }
 
@@ -402,4 +503,32 @@ function openBuy(){
   $('#sheet').hidden=false;
   $('#sh').innerHTML=`
     <h3>Add / Buy Bond</h3>
-    <select id=bs onchange="$('#nb').hidden=this.value!=='new'"><option value=new>New bond…</option>${S.data.bonds.map(b=>`<option value="${b.isin}">${esc(b.name)} (${b.isin})</option>`).join
+    <select id=bs onchange="$('#nb').hidden=this.value!=='new'"><option value=new>New bond…</option>${S.data.bonds.map(b=>`<option value="${b.isin}">${esc(b.name)} (${b.isin})</option>`).join('')}</select>
+    <div id=nb>
+      <input id=ni placeholder="ISIN (12 chars)"><input id=nn placeholder="Bond Name">
+      <input id=nf type=number placeholder="Face Value"><input id=nc type=number step=any placeholder="Coupon %">
+      <input id=ny type=number step=any placeholder="YTM %"><input id=nm type=date>
+      <input id=np type=number placeholder="Payment Day (31=EOM)"><input id=nt type=number value=10 placeholder="TDS %">
+      <select id=nsec><option value="1">Secured</option><option value="0">Unsecured</option></select>
+    </div>
+    <input id=bd type=date value="${ISO(TODAY)}"><input id=bu type=number placeholder="Units"><input id=ba type=number placeholder="Total Amount Paid">
+    <div class="row" style="margin-top:16px"><button class="ghost" onclick="$('#sheet').hidden=true">Cancel</button><button onclick="saveBuy()">Save Position</button></div>
+  `;
+}
+
+async function saveBuy(){
+  const v=id=>$('#'+id).value.trim(),nw=v('bs')==='new',isn=nw?v('ni').toUpperCase():v('bs');
+  const bond=nw?{isin:isn,name:v('nn'),face:+v('nf'),coupon:+v('nc'),ytm:+v('ny'),maturity:v('nm'),payday:+v('np'),tds:+v('nt'),secured:+$('#nsec').value}:null;
+  try{setData(await api('addTx',{bond,tx:{date:v('bd'),isin:isn,type:'BUY',units:+v('bu'),amount:+v('ba')}}));$('#sheet').hidden=true;toast('Saved')}catch(e){toast(e.message)}
+}
+
+async function delTx(id){if(confirm('Delete transaction?'))setData(await api('delTx',{id}))}
+
+// Initial boot check
+if(S.token){
+  load();
+}else{
+  $('#login').hidden=false;
+  $('#app').hidden=true;
+}
+</script></body></html>
